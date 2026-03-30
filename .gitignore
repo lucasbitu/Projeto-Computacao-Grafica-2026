@@ -1,0 +1,4 @@
+# Ignora o executável gerado pelo Linux
+main
+*.out
+*.o
