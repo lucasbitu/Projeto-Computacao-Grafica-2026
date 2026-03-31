@@ -117,6 +117,26 @@ void reshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW); 
 }
 
+void drawGround() {
+    // Piso padrão do "mundo" fora da casa.
+    // Fica levemente abaixo do piso da casa para evitar z-fighting.
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    GLfloat material_chao[] = { 0.25f, 0.55f, 0.25f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, material_chao);
+
+    const float y = -0.01f;
+    const float size = 200.0f;
+
+    glBegin(GL_QUADS);
+        glNormal3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(-size, y, -size);
+        glVertex3f(-size, y,  size);
+        glVertex3f( size, y,  size);
+        glVertex3f( size, y, -size);
+    glEnd();
+}
+
 void drawHouse() {
     // Definimos como a superfície reage à luz (Material)
     // Usamos branco puro para não distorcer as cores reais das fotos
@@ -228,6 +248,9 @@ void display(void) {
               camX + dirX, camY + dirY, camZ + dirZ, // Ponto na linha do olhar
               0.0, 1.0, 0.0);                        // Qual direção é "para cima" (eixo Y)
 
+    // Piso padrão do mundo (fora da casa).
+    drawGround();
+
     // Chama a função que constrói as paredes e o chão.
     drawHouse();
     // Chama a função que constrói a mesa.
@@ -239,12 +262,31 @@ void display(void) {
 
 void keyboard(unsigned char key, int x, int y) {
     float velocidade = 0.5f; // O tamanho do passo que damos a cada clique.
+
+    // Movimento relativo à câmera (baseado no yaw).
+    // Ignoramos o pitch para manter o movimento "no chão" (sem subir/descer).
+    float forwardX = sinf(camYaw);
+    float forwardZ = -cosf(camYaw);
+    float rightX = cosf(camYaw);
+    float rightZ = sinf(camYaw);
     
     switch (key) {
-        case 'w': camZ -= velocidade; break; // Anda para frente (diminui o Z)
-        case 's': camZ += velocidade; break; // Anda para trás (aumenta o Z)
-        case 'a': camX -= velocidade; break; // Anda para esquerda (diminui o X)
-        case 'd': camX += velocidade; break; // Anda para direita (aumenta o X)
+        case 'w':
+            camX += forwardX * velocidade;
+            camZ += forwardZ * velocidade;
+            break;
+        case 's':
+            camX -= forwardX * velocidade;
+            camZ -= forwardZ * velocidade;
+            break;
+        case 'a':
+            camX -= rightX * velocidade;
+            camZ -= rightZ * velocidade;
+            break;
+        case 'd':
+            camX += rightX * velocidade;
+            camZ += rightZ * velocidade;
+            break;
         case 27: exit(0); break;             // A tecla 27 é o ESC (para fechar o programa)[cite: 8].
     }
     
