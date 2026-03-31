@@ -1,5 +1,6 @@
 #include <GL/glut.h> // A biblioteca principal que o Prof. Davi usa para gerenciar janelas e inputs.
 #include <stdlib.h>  // Necessária para a função exit() quando quisermos fechar o programa.
+#include <math.h>    // sin, cos, fmaxf, fminf para direção do olhar
 #include <iostream> // Necessário para imprimir mensagens de erro
 
 // Avisa o compilador para carregar o código completo da stb_image [cite: 215]
@@ -14,6 +15,13 @@ GLuint texParede;
 float camX = 0.0f; // Posição no eixo X (esquerda/direita)
 float camY = 2.0f; // Altura da câmera (olhos a 2 metros do chão)
 float camZ = 5.0f; // Posição no eixo Z (frente/trás)
+
+// Direção do olhar (yaw em torno do eixo Y, pitch para cima/baixo), em radianos.
+// Com yaw=0 e pitch=0 o vetor frontal aponta para -Z, como no gluLookAt original.
+float camYaw = 0.0f;
+float camPitch = 0.0f;
+
+static const float CAM_PITCH_LIMIT = 1.55f; // ~89° — evita virar de cabeça para baixo
 
 // Função para carregar a textura [cite: 226]
 GLuint loadTexture(const char* filename) {
@@ -209,10 +217,16 @@ void display(void) {
     
     glLoadIdentity(); // Reseta as transformações (limpa qualquer rotação/translação do frame anterior).
 
+    // Vetor unitário para onde a câmera está olhando (derivado de yaw/pitch).
+    float cosP = cosf(camPitch);
+    float dirX = sinf(camYaw) * cosP;
+    float dirY = sinf(camPitch);
+    float dirZ = -cosf(camYaw) * cosP;
+
     // Posiciona a câmera no mundo 3D usando as nossas variáveis[cite: 10, 11].
-    gluLookAt(camX, camY, camZ,       // Posição dos seus "olhos"
-              camX, camY, camZ - 1.0, // Para onde você está olhando (sempre 1 passo para frente no eixo Z)
-              0.0, 1.0, 0.0);         // Qual direção é "para cima" (eixo Y)
+    gluLookAt(camX, camY, camZ,                      // Posição dos seus "olhos"
+              camX + dirX, camY + dirY, camZ + dirZ, // Ponto na linha do olhar
+              0.0, 1.0, 0.0);                        // Qual direção é "para cima" (eixo Y)
 
     // Chama a função que constrói as paredes e o chão.
     drawHouse();
@@ -238,6 +252,31 @@ void keyboard(unsigned char key, int x, int y) {
     glutPostRedisplay(); 
 }
 
+void specialKeys(int key, int x, int y) {
+    (void)x;
+    (void)y;
+    float velocidadeOlhar = 0.04f; // radianos por pressionamento (~2,3°)
+
+    switch (key) {
+        case GLUT_KEY_LEFT:
+            camYaw -= velocidadeOlhar;
+            break;
+        case GLUT_KEY_RIGHT:
+            camYaw += velocidadeOlhar;
+            break;
+        case GLUT_KEY_UP:
+            camPitch = fminf(camPitch + velocidadeOlhar, CAM_PITCH_LIMIT);
+            break;
+        case GLUT_KEY_DOWN:
+            camPitch = fmaxf(camPitch - velocidadeOlhar, -CAM_PITCH_LIMIT);
+            break;
+        default:
+            return;
+    }
+
+    glutPostRedisplay();
+}
+
 int main(int argc, char** argv) {
     glutInit(&argc, argv); // Inicializa a biblioteca GLUT.
     
@@ -252,6 +291,7 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialKeys);
 
     // Entra em um loop infinito, esperando você apertar teclas ou redimensionar a tela.
     glutMainLoop(); 
