@@ -3,13 +3,15 @@
 #include <math.h>    // sin, cos, fmaxf, fminf para direção do olhar
 #include <iostream> // Necessário para imprimir mensagens de erro
 
-// Avisa o compilador para carregar o código completo da stb_image [cite: 215]
+// Avisa o compilador para carregar o código completo da stb_image 
 #define STB_IMAGE_IMPLEMENTATION 
 #include "stb_image.h"
 
 // Variáveis para guardar os IDs das texturas
 GLuint texPiso;
 GLuint texParede;
+GLuint texGramado;
+GLuint texTelhado; 
 
 // Posição inicial da nossa câmera no mundo 3D
 float camX = 0.0f; // Posição no eixo X (esquerda/direita)
@@ -23,7 +25,7 @@ float camPitch = 0.0f;
 
 static const float CAM_PITCH_LIMIT = 1.55f; // ~89° — evita virar de cabeça para baixo
 
-// Função para carregar a textura [cite: 226]
+// Função para carregar a textura 
 GLuint loadTexture(const char* filename) {
     GLuint textureID;
     glGenTextures(1, &textureID);
@@ -63,208 +65,284 @@ void init(void) {
     glClearColor(0.5f, 0.8f, 1.0f, 1.0f); 
     
     // Habilita o teste de profundidade (Z-buffer). 
-    // Isso garante que uma parede na frente esconda o que está atrás dela[cite: 67].
     glEnable(GL_DEPTH_TEST); 
 
-    // Define que o sombreamento será suave (interpola as cores entre os vértices) [cite: 167]
+    // Define que o sombreamento será suave (interpola as cores entre os vértices) 
     glShadeModel(GL_SMOOTH); 
 
     // --- CONFIGURAÇÃO DA LUZ 0 (Lâmpada da sala) ---
-    // A posição da luz: (X=0, Y=3.5, Z=-3, W=1). 
-    // O W=1 indica que é uma luz pontual (tem posição no espaço)[cite: 91, 94].
-    GLfloat light_position[] = { 0.0f, 3.5f, -3.0f, 1.0f }; 
-    
-    // Cor ambiente (luz residual, fraquinha) 
+    // Apenas as cores ficam no init() agora
     GLfloat light_ambient[]  = { 0.2f, 0.2f, 0.2f, 1.0f }; 
-    // Cor difusa (a cor real da luz batendo nos objetos, branca) 
     GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f }; 
-    // Cor especular (o brilho refletido, branco) [cite: 89]
     GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; 
 
-    // Entrega essas configurações para a LIGHT0 do OpenGL 
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
-    // Liga o "interruptor" geral de luz e liga a lâmpada 0 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
+    // ==========================================
+    // CONFIGURAÇÃO DA LUZ 1: O Sol
+    // ==========================================
+    // Apenas as cores ficam no init() agora
+    GLfloat sol_difusa[] = { 0.7f, 0.7f, 0.7f, 1.0f }; 
+    GLfloat sol_ambiente[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, sol_difusa);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, sol_ambiente); 
+    glEnable(GL_LIGHT1); 
+
+    // Mandamos o OpenGL calcular a luz na frente E no verso da parede
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    // ==========================================
+
     // Mapeamento texturas
-    glEnable(GL_TEXTURE_2D); // Ativa o mapeamento de textura 
+    glEnable(GL_TEXTURE_2D); 
     
-    // Carrega os arquivos que você colocou na pasta. 
-    // Coloquei o nome exato do arquivo de tijolos que você fez upload.
     texPiso = loadTexture("texturas/piso.jpg");     
     texParede = loadTexture("texturas/paredes.jpg");
+    texGramado = loadTexture("texturas/grama.jpg");
+    texTelhado = loadTexture("texturas/telhado.jpg"); 
 }
 
 void reshape(int w, int h) {
-    if (h == 0) h = 1; // Previne divisão por zero se a janela for minimizada.
-    float aspect = (float)w / (float)h; // Calcula a proporção da tela.
+    if (h == 0) h = 1; 
+    float aspect = (float)w / (float)h; 
 
-    glViewport(0, 0, w, h); // Diz ao OpenGL para usar toda a área da janela.
+    glViewport(0, 0, w, h); 
 
-    // Entrando no modo de PROJEÇÃO (configurando a lente da câmera)
     glMatrixMode(GL_PROJECTION); 
-    glLoadIdentity(); // Reseta a matriz de projeção.
+    glLoadIdentity(); 
 
-    // Define a perspectiva: (ângulo de visão, proporção, distância mínima visível, distância máxima visível)[cite: 12].
     gluPerspective(60.0, aspect, 0.1, 100.0); 
 
-    // Volta para o modo MODELVIEW (onde colocamos os objetos no mundo 3D)
     glMatrixMode(GL_MODELVIEW); 
 }
 
 void drawGround() {
-    // Piso padrão do "mundo" fora da casa.
-    // Fica levemente abaixo do piso da casa para evitar z-fighting.
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_LIGHTING); 
 
-    GLfloat material_chao[] = { 0.25f, 0.55f, 0.25f, 1.0f };
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, material_chao);
+    glColor3f(1.0f, 1.0f, 1.0f); 
+
+    glBindTexture(GL_TEXTURE_2D, texGramado);
 
     const float y = -0.01f;
     const float size = 200.0f;
 
     glBegin(GL_QUADS);
         glNormal3f(0.0f, 1.0f, 0.0f);
-        glVertex3f(-size, y, -size);
-        glVertex3f(-size, y,  size);
-        glVertex3f( size, y,  size);
-        glVertex3f( size, y, -size);
+        glTexCoord2f(0.0f,   0.0f);   glVertex3f(-size, y, -size);
+        glTexCoord2f(0.0f,   200.0f); glVertex3f(-size, y,  size);
+        glTexCoord2f(200.0f, 200.0f); glVertex3f( size, y,  size);
+        glTexCoord2f(200.0f, 0.0f);   glVertex3f( size, y, -size);
     glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glEnable(GL_LIGHTING); 
 }
 
 void drawHouse() {
-    // Definimos como a superfície reage à luz (Material)
-    // Usamos branco puro para não distorcer as cores reais das fotos
     GLfloat material_branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, material_branco);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
 
-    // --- O CHÃO ---
-    glBindTexture(GL_TEXTURE_2D, texPiso); // Aplica a textura do piso [cite: 198]
-    
+    // ==========================================
+    // 1. O CHÃO
+    // ==========================================
+    glBindTexture(GL_TEXTURE_2D, texPiso); 
     glBegin(GL_QUADS); 
         glNormal3f(0.0f, 1.0f, 0.0f); 
-        // O valor 10.0 faz a textura repetir 10 vezes, para os tacos não ficarem gigantescos
         glTexCoord2f(0.0f, 0.0f);   glVertex3f(-10.0f, 0.0f, -10.0f); 
         glTexCoord2f(0.0f, 10.0f);  glVertex3f(-10.0f, 0.0f,  10.0f); 
         glTexCoord2f(10.0f, 10.0f); glVertex3f( 10.0f, 0.0f,  10.0f); 
         glTexCoord2f(10.0f, 0.0f);  glVertex3f( 10.0f, 0.0f, -10.0f); 
     glEnd();
 
-    // --- A PAREDE DO FUNDO ---
-    glBindTexture(GL_TEXTURE_2D, texParede); // Troca para a textura de tijolos [cite: 198]
+    // ==========================================
+    // 2. AS PAREDES
+    // ==========================================
+    glBindTexture(GL_TEXTURE_2D, texParede); 
 
     glBegin(GL_QUADS);
+        // Parede do Fundo (Z = -10)
         glNormal3f(0.0f, 0.0f, 1.0f); 
-        // A parede é mais larga, então repetimos 4x na largura e 2x na altura
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 0.0f, -10.0f); 
         glTexCoord2f(4.0f, 0.0f); glVertex3f( 10.0f, 0.0f, -10.0f); 
         glTexCoord2f(4.0f, 2.0f); glVertex3f( 10.0f, 4.0f, -10.0f); 
         glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, -10.0f); 
+
+        // Parede Esquerda (X = -10)
+        glNormal3f(1.0f, 0.0f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 0.0f,  10.0f);
+        glTexCoord2f(4.0f, 0.0f); glVertex3f(-10.0f, 0.0f, -10.0f);
+        glTexCoord2f(4.0f, 2.0f); glVertex3f(-10.0f, 4.0f, -10.0f);
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f,  10.0f);
+
+        // Parede Direita (X = 10)
+        glNormal3f(-1.0f, 0.0f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(10.0f, 0.0f, -10.0f);
+        glTexCoord2f(4.0f, 0.0f); glVertex3f(10.0f, 0.0f,  10.0f);
+        glTexCoord2f(4.0f, 2.0f); glVertex3f(10.0f, 4.0f,  10.0f);
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(10.0f, 4.0f, -10.0f);
+
+        // Parede da Frente com Porta (Z = 10)
+        glNormal3f(0.0f, 0.0f, -1.0f); 
+        
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 0.0f, 10.0f);
+        glTexCoord2f(2.0f, 0.0f); glVertex3f(-2.0f,  0.0f, 10.0f);
+        glTexCoord2f(2.0f, 2.0f); glVertex3f(-2.0f,  4.0f, 10.0f);
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, 10.0f);
+
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 2.0f, 0.0f, 10.0f);
+        glTexCoord2f(2.0f, 0.0f); glVertex3f(10.0f, 0.0f, 10.0f);
+        glTexCoord2f(2.0f, 2.0f); glVertex3f(10.0f, 4.0f, 10.0f);
+        glTexCoord2f(0.0f, 2.0f); glVertex3f( 2.0f, 4.0f, 10.0f);
+
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.0f, 3.0f, 10.0f);
+        glTexCoord2f(1.0f, 0.0f); glVertex3f( 2.0f, 3.0f, 10.0f);
+        glTexCoord2f(1.0f, 0.5f); glVertex3f( 2.0f, 4.0f, 10.0f);
+        glTexCoord2f(0.0f, 0.5f); glVertex3f(-2.0f, 4.0f, 10.0f);
     glEnd();
 
-    // Desativa a textura no final para que a mesa e outros objetos 
-    // voltem a usar apenas cores sólidas (se não a mesa vai ficar de tijolo também!)
+    // ==========================================
+    // 3. O TETO INTERNO (Forro cinza)
+    // ==========================================
+    glBindTexture(GL_TEXTURE_2D, 0); 
+    GLfloat cor_teto[] = { 0.9f, 0.9f, 0.9f, 1.0f }; 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, cor_teto);
+
+    glBegin(GL_QUADS);
+        glNormal3f(0.0f, -1.0f, 0.0f); // Normal aponta para baixo (recebe luz de dentro)
+        
+        // MODIFICADO: Invertida a ordem para garantir sentido anti-horário
+        // olhando de baixo para cima (a "frente" fica para dentro da sala).
+        glVertex3f(-10.0f, 4.0f,  10.0f); // Frente Esq
+        glVertex3f( 10.0f, 4.0f,  10.0f); // Frente Dir
+        glVertex3f( 10.0f, 4.0f, -10.0f); // Fundo Dir
+        glVertex3f(-10.0f, 4.0f, -10.0f); // Fundo Esq
+    glEnd();
+
+    // ==========================================
+    // 4. ESTRUTURA DO TELHADO EXTERNO (NOVO)
+    // ==========================================
+    glBindTexture(GL_TEXTURE_2D, texTelhado); // Aplica textura de telhas
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco); // Usa branco para textura real
+
+    // Definimos o pico do telhado (centro da casa, mais alto)
+    float picoY = 8.0f;
+
+    glBegin(GL_TRIANGLES);
+        // --- Face Frontal (Olhando para +Z) ---
+        // Normal aponta para frente e para cima
+        glNormal3f(0.0f, 0.5f, 0.8f); 
+        // Coordenadas de textura mapeadas para o triângulo (repete 4x na largura, 2x na altura)
+        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);   // Pico
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 4.0f, 10.0f); // Base Esq Frontal
+        glTexCoord2f(4.0f, 0.0f); glVertex3f( 10.0f, 4.0f, 10.0f); // Base Dir Frontal
+
+        // --- Face Traseira (Olhando para -Z) ---
+        glNormal3f(0.0f, 0.5f, -0.8f);
+        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 10.0f, 4.0f, -10.0f);
+        glTexCoord2f(4.0f, 0.0f); glVertex3f(-10.0f, 4.0f, -10.0f);
+
+        // --- Face Esquerda (Olhando para -X) ---
+        glNormal3f(-0.8f, 0.5f, 0.0f);
+        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 4.0f, -10.0f);
+        glTexCoord2f(4.0f, 0.0f); glVertex3f(-10.0f, 4.0f,  10.0f);
+
+        // --- Face Direita (Olhando para +X) ---
+        glNormal3f(0.8f, 0.5f, 0.0f);
+        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 10.0f, 4.0f,  10.0f);
+        glTexCoord2f(4.0f, 0.0f); glVertex3f( 10.0f, 4.0f, -10.0f);
+    glEnd();
+
+    // Desativa textura no final
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void drawTable() {
-    // Salva o sistema de coordenadas atual do mundo (para não afetar o resto da casa).
     glPushMatrix(); 
-
-    // Move a mesa inteira para o centro da sala (um pouco à frente da câmera original)
-    // Subimos o Y em 0.5 para o centro da mesa não ficar enterrado no chão.
     glTranslatef(0.0f, 0.5f, -3.0f); 
 
-    // --- TAMPO DA MESA ---
-    glPushMatrix(); // Salva a posição central da mesa [cite: 16, 17]
-        // Define o material do tampo (Marrom claro)
+    glPushMatrix(); 
         GLfloat tampo_difuso[] = { 0.6f, 0.4f, 0.2f, 1.0f };
         glMaterialfv(GL_FRONT, GL_DIFFUSE, tampo_difuso);
-        // Escala o cubo base (1.0) para virar um retângulo largo (2.0) e achatado (0.1)
         glScalef(2.0f, 0.1f, 1.0f);  
-        glutSolidCube(1.0); // Define um cubo sólido 
-    glPopMatrix(); // Volta para o centro da mesa [cite: 16, 17]
+        glutSolidCube(1.0); 
+    glPopMatrix(); 
 
-    // --- MATERIAL DAS PERNAS ---
-    // Como todas as pernas têm a mesma cor, 
-    // definimos o material (Marrom escuro) uma vez aqui fora, 
-    // e ele valerá para os 4 cubos seguintes.
     GLfloat perna_difusa[] = { 0.4f, 0.2f, 0.1f, 1.0f };
     glMaterialfv(GL_FRONT, GL_DIFFUSE, perna_difusa);
 
-    // --- PERNA 1 (Frente Esquerda) ---
     glPushMatrix();
-        // Desloca a perna para o canto do tampo e desce ela para tocar o chão
         glTranslatef(-0.9f, -0.45f, 0.4f); 
-        // Deixa a perna fina (0.1) e comprida (0.9)
         glScalef(0.1f, 0.9f, 0.1f);
         glutSolidCube(1.0);
     glPopMatrix();
 
-    // --- PERNA 2 (Frente Direita) ---
     glPushMatrix();
-        glTranslatef(0.9f, -0.45f, 0.4f); // Muda apenas o X para a direita
+        glTranslatef(0.9f, -0.45f, 0.4f); 
         glScalef(0.1f, 0.9f, 0.1f);
         glutSolidCube(1.0);
     glPopMatrix();
 
-    // --- PERNA 3 (Trás Esquerda) ---
     glPushMatrix();
-        glTranslatef(-0.9f, -0.45f, -0.4f); // Muda o Z para o fundo
+        glTranslatef(-0.9f, -0.45f, -0.4f); 
         glScalef(0.1f, 0.9f, 0.1f);
         glutSolidCube(1.0);
     glPopMatrix();
 
-    // --- PERNA 4 (Trás Direita) ---
     glPushMatrix();
         glTranslatef(0.9f, -0.45f, -0.4f); 
         glScalef(0.1f, 0.9f, 0.1f);
         glutSolidCube(1.0);
     glPopMatrix();
 
-    // Restaura o sistema de coordenadas geral do mundo.
     glPopMatrix(); 
 }
 
 void display(void) {
-    // Limpa a cor da tela e o buffer de profundidade (para a oclusão funcionar)[cite: 69].
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-    
-    glLoadIdentity(); // Reseta as transformações (limpa qualquer rotação/translação do frame anterior).
+    glLoadIdentity(); 
 
-    // Vetor unitário para onde a câmera está olhando (derivado de yaw/pitch).
     float cosP = cosf(camPitch);
     float dirX = sinf(camYaw) * cosP;
     float dirY = sinf(camPitch);
     float dirZ = -cosf(camYaw) * cosP;
 
-    // Posiciona a câmera no mundo 3D usando as nossas variáveis[cite: 10, 11].
-    gluLookAt(camX, camY, camZ,                      // Posição dos seus "olhos"
-              camX + dirX, camY + dirY, camZ + dirZ, // Ponto na linha do olhar
-              0.0, 1.0, 0.0);                        // Qual direção é "para cima" (eixo Y)
+    // 1. A câmera é posicionada no mundo
+    gluLookAt(camX, camY, camZ,                      
+              camX + dirX, camY + dirY, camZ + dirZ, 
+              0.0, 1.0, 0.0);                        
 
-    // Piso padrão do mundo (fora da casa).
+    // ========================================================
+    // 2. CÓDIGO NOVO: As luzes são posicionadas FIXAS no mundo
+    // ========================================================
+    // A lâmpada fica fixa no teto da sala
+    GLfloat light_position[] = { 0.0f, 3.5f, -3.0f, 1.0f }; 
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+    // O Sol fica fixo alto no céu, de frente para a fachada da casa (Z=30)
+    GLfloat sol_posicao[] = { 0.0f, 15.0f, 30.0f, 0.0f }; 
+    glLightfv(GL_LIGHT1, GL_POSITION, sol_posicao);
+    // ========================================================
+
     drawGround();
-
-    // Chama a função que constrói as paredes e o chão.
     drawHouse();
-    // Chama a função que constrói a mesa.
     drawTable();
 
-    // Troca os buffers de vídeo (mostra o que acabamos de desenhar).
     glutSwapBuffers(); 
 }
 
 void keyboard(unsigned char key, int x, int y) {
-    float velocidade = 0.5f; // O tamanho do passo que damos a cada clique.
+    float velocidade = 0.5f; 
 
-    // Movimento relativo à câmera (baseado no yaw).
-    // Ignoramos o pitch para manter o movimento "no chão" (sem subir/descer).
+    // O cálculo de andar para frente e para os lados continua o mesmo
     float forwardX = sinf(camYaw);
     float forwardZ = -cosf(camYaw);
     float rightX = cosf(camYaw);
@@ -272,32 +350,53 @@ void keyboard(unsigned char key, int x, int y) {
     
     switch (key) {
         case 'w':
+        case 'W':
             camX += forwardX * velocidade;
             camZ += forwardZ * velocidade;
             break;
         case 's':
+        case 'S':
             camX -= forwardX * velocidade;
             camZ -= forwardZ * velocidade;
             break;
         case 'a':
+        case 'A':
             camX -= rightX * velocidade;
             camZ -= rightZ * velocidade;
             break;
         case 'd':
+        case 'D':
             camX += rightX * velocidade;
             camZ += rightZ * velocidade;
             break;
-        case 27: exit(0); break;             // A tecla 27 é o ESC (para fechar o programa)[cite: 8].
+            
+        // ==========================================
+        // CÓDIGO NOVO: Controle de Altitude (Drone)
+        // ==========================================
+        case 'e': // Sobe no eixo Y
+        case 'E':
+            camY += velocidade;
+            break;
+        case 'q': // Desce no eixo Y
+        case 'Q':
+            camY -= velocidade;
+            // Opcional: Travar a câmera para não afundar abaixo do chão
+            if (camY < 0.5f) camY = 0.5f; 
+            break;
+        // ==========================================
+
+        case 27: // Tecla ESC
+            exit(0); 
+            break;             
     }
     
-    // Avisa o OpenGL que a câmera mudou e ele precisa redesenhar a tela inteira.
     glutPostRedisplay(); 
 }
 
 void specialKeys(int key, int x, int y) {
     (void)x;
     (void)y;
-    float velocidadeOlhar = 0.04f; // radianos por pressionamento (~2,3°)
+    float velocidadeOlhar = 0.04f; 
 
     switch (key) {
         case GLUT_KEY_LEFT:
@@ -320,22 +419,19 @@ void specialKeys(int key, int x, int y) {
 }
 
 int main(int argc, char** argv) {
-    glutInit(&argc, argv); // Inicializa a biblioteca GLUT.
+    glutInit(&argc, argv); 
     
-    // Configura a janela para usar Duplo Buffer, cores RGB e o Buffer de Profundidade[cite: 68].
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); 
-    glutInitWindowSize(800, 600); // Tamanho inicial da janela.
-    glutCreateWindow("Projeto CG - Ambiente Simulado"); // Título da janela.
+    glutInitWindowSize(800, 600); 
+    glutCreateWindow("Projeto CG - Ambiente Simulado"); 
 
-    init(); // Chama nossa função de configuração inicial.
+    init(); 
 
-    // Cadastra os "Callbacks". Dizemos ao GLUT quais funções nossas ele deve chamar em cada evento.
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutSpecialFunc(specialKeys);
 
-    // Entra em um loop infinito, esperando você apertar teclas ou redimensionar a tela.
     glutMainLoop(); 
     return 0;
 }
