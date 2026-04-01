@@ -1,9 +1,8 @@
-#include <GL/glut.h> // A biblioteca principal que o Prof. Davi usa para gerenciar janelas e inputs.
-#include <stdlib.h>  // Necessária para a função exit() quando quisermos fechar o programa.
-#include <math.h>    // sin, cos, fmaxf, fminf para direção do olhar
-#include <iostream> // Necessário para imprimir mensagens de erro
+#include <GL/glut.h> 
+#include <stdlib.h>  
+#include <math.h>    
+#include <iostream> 
 
-// Avisa o compilador para carregar o código completo da stb_image 
 #define STB_IMAGE_IMPLEMENTATION 
 #include "stb_image.h"
 
@@ -11,19 +10,19 @@
 GLuint texPiso;
 GLuint texParede;
 GLuint texGramado;
-GLuint texTelhado; 
+GLuint texTelhado;
+GLuint texGesso; 
 
 // Posição inicial da nossa câmera no mundo 3D
-float camX = 0.0f; // Posição no eixo X (esquerda/direita)
-float camY = 2.0f; // Altura da câmera (olhos a 2 metros do chão)
-float camZ = 5.0f; // Posição no eixo Z (frente/trás)
+float camX = 0.0f; 
+float camY = 2.0f; 
+float camZ = 5.0f; 
 
-// Direção do olhar (yaw em torno do eixo Y, pitch para cima/baixo), em radianos.
-// Com yaw=0 e pitch=0 o vetor frontal aponta para -Z, como no gluLookAt original.
+// Direção do olhar
 float camYaw = 0.0f;
 float camPitch = 0.0f;
 
-static const float CAM_PITCH_LIMIT = 1.55f; // ~89° — evita virar de cabeça para baixo
+static const float CAM_PITCH_LIMIT = 1.55f; 
 
 // Função para carregar a textura 
 GLuint loadTexture(const char* filename) {
@@ -31,19 +30,15 @@ GLuint loadTexture(const char* filename) {
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID); 
 
-    // Configura o comportamento da textura para repetir (como azulejo)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     
-    // Configura os filtros de suavização 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Garante que a imagem não fique de cabeça para baixo no OpenGL
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, nrChannels;
-    // Carrega os dados da imagem 
     unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, 0);
 
     if (data) { 
@@ -61,17 +56,11 @@ GLuint loadTexture(const char* filename) {
 }
 
 void init(void) {
-    // Define a cor de fundo da janela (R, G, B, Alpha). Vamos usar um azul claro para simular o céu.
     glClearColor(0.5f, 0.8f, 1.0f, 1.0f); 
-    
-    // Habilita o teste de profundidade (Z-buffer). 
     glEnable(GL_DEPTH_TEST); 
-
-    // Define que o sombreamento será suave (interpola as cores entre os vértices) 
     glShadeModel(GL_SMOOTH); 
 
-    // --- CONFIGURAÇÃO DA LUZ 0 (Lâmpada da sala) ---
-    // Apenas as cores ficam no init() agora
+    // LUZ 0
     GLfloat light_ambient[]  = { 0.2f, 0.2f, 0.2f, 1.0f }; 
     GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f }; 
     GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; 
@@ -83,10 +72,7 @@ void init(void) {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
-    // ==========================================
-    // CONFIGURAÇÃO DA LUZ 1: O Sol
-    // ==========================================
-    // Apenas as cores ficam no init() agora
+    // LUZ 1 (Sol)
     GLfloat sol_difusa[] = { 0.7f, 0.7f, 0.7f, 1.0f }; 
     GLfloat sol_ambiente[] = { 0.6f, 0.6f, 0.6f, 1.0f };
 
@@ -94,17 +80,15 @@ void init(void) {
     glLightfv(GL_LIGHT1, GL_AMBIENT, sol_ambiente); 
     glEnable(GL_LIGHT1); 
 
-    // Mandamos o OpenGL calcular a luz na frente E no verso da parede
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    // ==========================================
 
-    // Mapeamento texturas
     glEnable(GL_TEXTURE_2D); 
     
     texPiso = loadTexture("texturas/piso.jpg");     
     texParede = loadTexture("texturas/paredes.jpg");
     texGramado = loadTexture("texturas/grama.jpg");
     texTelhado = loadTexture("texturas/telhado.jpg"); 
+    texGesso = loadTexture("texturas/gesso.jpg");
 }
 
 void reshape(int w, int h) {
@@ -112,20 +96,15 @@ void reshape(int w, int h) {
     float aspect = (float)w / (float)h; 
 
     glViewport(0, 0, w, h); 
-
     glMatrixMode(GL_PROJECTION); 
     glLoadIdentity(); 
-
     gluPerspective(60.0, aspect, 0.1, 100.0); 
-
     glMatrixMode(GL_MODELVIEW); 
 }
 
 void drawGround() {
     glDisable(GL_LIGHTING); 
-
     glColor3f(1.0f, 1.0f, 1.0f); 
-
     glBindTexture(GL_TEXTURE_2D, texGramado);
 
     const float y = -0.01f;
@@ -140,17 +119,66 @@ void drawGround() {
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
-
     glEnable(GL_LIGHTING); 
+}
+
+void drawInternalWalls() {
+    glBindTexture(GL_TEXTURE_2D, texParede); 
+    GLfloat material_branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
+
+    glBegin(GL_QUADS);
+        // 1. PAREDE CENTRAL (Z = 0)
+        glNormal3f(0.0f, 0.0f, 1.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 0.0f, 0.0f); 
+        glTexCoord2f(10.0f, 0.0f); glVertex3f( 10.0f, 0.0f, 0.0f); 
+        glTexCoord2f(10.0f, 2.0f); glVertex3f( 10.0f, 4.0f, 0.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, 0.0f); 
+
+        // 2. DIVISÓRIA SALA / ÁREA DA SUÍTE E BANHEIROS (X = 3)
+        glNormal3f(-1.0f, 0.0f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(3.0f, 0.0f,  10.0f); 
+        glTexCoord2f(5.0f, 0.0f); glVertex3f(3.0f, 0.0f,   0.0f); 
+        glTexCoord2f(5.0f, 2.0f); glVertex3f(3.0f, 4.0f,   0.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(3.0f, 4.0f,  10.0f); 
+
+        // 3. DIVISÓRIA COZINHA / QUARTO 1 (X = -3)
+        glNormal3f(1.0f, 0.0f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-3.0f, 0.0f,   0.0f); 
+        glTexCoord2f(5.0f, 0.0f); glVertex3f(-3.0f, 0.0f, -10.0f); 
+        glTexCoord2f(5.0f, 2.0f); glVertex3f(-3.0f, 4.0f, -10.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-3.0f, 4.0f,   0.0f); 
+
+        // 4. DIVISÓRIA QUARTO 1 / QUARTO 2 (X = 4)
+        glNormal3f(-1.0f, 0.0f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(4.0f, 0.0f,   0.0f); 
+        glTexCoord2f(5.0f, 0.0f); glVertex3f(4.0f, 0.0f, -10.0f); 
+        glTexCoord2f(5.0f, 2.0f); glVertex3f(4.0f, 4.0f, -10.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(4.0f, 4.0f,   0.0f); 
+
+        // 5. DIVISÓRIA BANHEIROS / SUÍTE (Z = 4)
+        glNormal3f(0.0f, 0.0f, 1.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( 3.0f, 0.0f, 4.0f); 
+        glTexCoord2f(3.5f, 0.0f); glVertex3f(10.0f, 0.0f, 4.0f); 
+        glTexCoord2f(3.5f, 2.0f); glVertex3f(10.0f, 4.0f, 4.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f( 3.0f, 4.0f, 4.0f); 
+
+        // 6. DIVISÓRIA BANHEIRO SOCIAL / BANHEIRO DA SUÍTE (X = 6)
+        glNormal3f(-1.0f, 0.0f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(6.0f, 0.0f, 4.0f); 
+        glTexCoord2f(2.0f, 0.0f); glVertex3f(6.0f, 0.0f, 0.0f); 
+        glTexCoord2f(2.0f, 2.0f); glVertex3f(6.0f, 4.0f, 0.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(6.0f, 4.0f, 4.0f); 
+
+    glEnd();
+    glBindTexture(GL_TEXTURE_2D, 0); 
 }
 
 void drawHouse() {
     GLfloat material_branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
 
-    // ==========================================
     // 1. O CHÃO
-    // ==========================================
     glBindTexture(GL_TEXTURE_2D, texPiso); 
     glBegin(GL_QUADS); 
         glNormal3f(0.0f, 1.0f, 0.0f); 
@@ -160,9 +188,7 @@ void drawHouse() {
         glTexCoord2f(10.0f, 0.0f);  glVertex3f( 10.0f, 0.0f, -10.0f); 
     glEnd();
 
-    // ==========================================
-    // 2. AS PAREDES
-    // ==========================================
+    // 2. AS PAREDES EXTERNAS
     glBindTexture(GL_TEXTURE_2D, texParede); 
 
     glBegin(GL_QUADS);
@@ -187,81 +213,84 @@ void drawHouse() {
         glTexCoord2f(4.0f, 2.0f); glVertex3f(10.0f, 4.0f,  10.0f);
         glTexCoord2f(0.0f, 2.0f); glVertex3f(10.0f, 4.0f, -10.0f);
 
-        // Parede da Frente com Porta (Z = 10)
+        // --- Parede da Frente com Porta Mais à Esquerda (Z = 10) ---
         glNormal3f(0.0f, 0.0f, -1.0f); 
         
+        // Pedaço Esquerdo (X de -10 até -7.0)
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 0.0f, 10.0f);
-        glTexCoord2f(2.0f, 0.0f); glVertex3f(-2.0f,  0.0f, 10.0f);
-        glTexCoord2f(2.0f, 2.0f); glVertex3f(-2.0f,  4.0f, 10.0f);
+        glTexCoord2f(0.6f, 0.0f); glVertex3f( -7.0f, 0.0f, 10.0f);
+        glTexCoord2f(0.6f, 2.0f); glVertex3f( -7.0f, 4.0f, 10.0f);
         glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, 10.0f);
 
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 2.0f, 0.0f, 10.0f);
-        glTexCoord2f(2.0f, 0.0f); glVertex3f(10.0f, 0.0f, 10.0f);
-        glTexCoord2f(2.0f, 2.0f); glVertex3f(10.0f, 4.0f, 10.0f);
-        glTexCoord2f(0.0f, 2.0f); glVertex3f( 2.0f, 4.0f, 10.0f);
+        // Pedaço Direito (X de -5.8 até 10)
+        glTexCoord2f(0.84f, 0.0f); glVertex3f( -5.8f, 0.0f, 10.0f);
+        glTexCoord2f(4.0f,  0.0f); glVertex3f( 10.0f, 0.0f, 10.0f);
+        glTexCoord2f(4.0f,  2.0f); glVertex3f( 10.0f, 4.0f, 10.0f);
+        glTexCoord2f(0.84f, 2.0f); glVertex3f( -5.8f, 4.0f, 10.0f);
 
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.0f, 3.0f, 10.0f);
-        glTexCoord2f(1.0f, 0.0f); glVertex3f( 2.0f, 3.0f, 10.0f);
-        glTexCoord2f(1.0f, 0.5f); glVertex3f( 2.0f, 4.0f, 10.0f);
-        glTexCoord2f(0.0f, 0.5f); glVertex3f(-2.0f, 4.0f, 10.0f);
+        // Pedaço de Cima da porta (Y de 2.2 até 4.0, X de -7.0 até -5.8)
+        glTexCoord2f(0.6f,  1.1f); glVertex3f( -7.0f, 2.2f, 10.0f);
+        glTexCoord2f(0.84f, 1.1f); glVertex3f( -5.8f, 2.2f, 10.0f);
+        glTexCoord2f(0.84f, 2.0f); glVertex3f( -5.8f, 4.0f, 10.0f);
+        glTexCoord2f(0.6f,  2.0f); glVertex3f( -7.0f, 4.0f, 10.0f);
     glEnd();
 
-    // ==========================================
-    // 3. O TETO INTERNO (Forro cinza)
-    // ==========================================
-    glBindTexture(GL_TEXTURE_2D, 0); 
-    GLfloat cor_teto[] = { 0.9f, 0.9f, 0.9f, 1.0f }; 
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, cor_teto);
+    // 3. O TETO INTERNO
+    glBindTexture(GL_TEXTURE_2D, texGesso); 
+    
+    GLfloat material_teto[] = { 1.0f, 1.0f, 1.0f, 1.0f }; 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_teto);
 
     glBegin(GL_QUADS);
-        glNormal3f(0.0f, -1.0f, 0.0f); // Normal aponta para baixo (recebe luz de dentro)
-        
-        // MODIFICADO: Invertida a ordem para garantir sentido anti-horário
-        // olhando de baixo para cima (a "frente" fica para dentro da sala).
-        glVertex3f(-10.0f, 4.0f,  10.0f); // Frente Esq
-        glVertex3f( 10.0f, 4.0f,  10.0f); // Frente Dir
-        glVertex3f( 10.0f, 4.0f, -10.0f); // Fundo Dir
-        glVertex3f(-10.0f, 4.0f, -10.0f); // Fundo Esq
+        glNormal3f(0.0f, -1.0f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f);   glVertex3f(-10.0f, 4.0f,  10.0f); 
+        glTexCoord2f(10.0f, 0.0f);  glVertex3f( 10.0f, 4.0f,  10.0f); 
+        glTexCoord2f(10.0f, 10.0f); glVertex3f( 10.0f, 4.0f, -10.0f); 
+        glTexCoord2f(0.0f, 10.0f);  glVertex3f(-10.0f, 4.0f, -10.0f); 
     glEnd();
 
-    // ==========================================
-    // 4. ESTRUTURA DO TELHADO EXTERNO (NOVO)
-    // ==========================================
-    glBindTexture(GL_TEXTURE_2D, texTelhado); // Aplica textura de telhas
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco); // Usa branco para textura real
+    // 4. ESTRUTURA DO TELHADO EXTERNO
+    glBindTexture(GL_TEXTURE_2D, texTelhado); 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
 
-    // Definimos o pico do telhado (centro da casa, mais alto)
     float picoY = 8.0f;
+    float baseRoofY = 3.6f;
+    float overX = 11.0f;    
+    float overZ = 11.0f;    
 
-    glBegin(GL_TRIANGLES);
-        // --- Face Frontal (Olhando para +Z) ---
-        // Normal aponta para frente e para cima
-        glNormal3f(0.0f, 0.5f, 0.8f); 
-        // Coordenadas de textura mapeadas para o triângulo (repete 4x na largura, 2x na altura)
-        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);   // Pico
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 4.0f, 10.0f); // Base Esq Frontal
-        glTexCoord2f(4.0f, 0.0f); glVertex3f( 10.0f, 4.0f, 10.0f); // Base Dir Frontal
+    glBegin(GL_QUADS);
+        // Água Esquerda
+        glNormal3f(-0.707f, 0.707f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-overX, baseRoofY,  overZ); 
+        glTexCoord2f(4.0f, 0.0f); glVertex3f(-overX, baseRoofY, -overZ); 
+        glTexCoord2f(4.0f, 2.0f); glVertex3f(  0.0f,     picoY, -overZ); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(  0.0f,     picoY,  overZ); 
 
-        // --- Face Traseira (Olhando para -Z) ---
-        glNormal3f(0.0f, 0.5f, -0.8f);
-        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 10.0f, 4.0f, -10.0f);
-        glTexCoord2f(4.0f, 0.0f); glVertex3f(-10.0f, 4.0f, -10.0f);
-
-        // --- Face Esquerda (Olhando para -X) ---
-        glNormal3f(-0.8f, 0.5f, 0.0f);
-        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f(-10.0f, 4.0f, -10.0f);
-        glTexCoord2f(4.0f, 0.0f); glVertex3f(-10.0f, 4.0f,  10.0f);
-
-        // --- Face Direita (Olhando para +X) ---
-        glNormal3f(0.8f, 0.5f, 0.0f);
-        glTexCoord2f(2.0f, 2.0f); glVertex3f( 0.0f, picoY, 0.0f);
-        glTexCoord2f(0.0f, 0.0f); glVertex3f( 10.0f, 4.0f,  10.0f);
-        glTexCoord2f(4.0f, 0.0f); glVertex3f( 10.0f, 4.0f, -10.0f);
+        // Água Direita
+        glNormal3f(0.707f, 0.707f, 0.0f); 
+        glTexCoord2f(0.0f, 0.0f); glVertex3f( overX, baseRoofY, -overZ); 
+        glTexCoord2f(4.0f, 0.0f); glVertex3f( overX, baseRoofY,  overZ); 
+        glTexCoord2f(4.0f, 2.0f); glVertex3f(  0.0f,     picoY,  overZ); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(  0.0f,     picoY, -overZ); 
     glEnd();
 
-    // Desativa textura no final
+    // OS OITÕES
+    glBindTexture(GL_TEXTURE_2D, texParede); 
+    
+    glBegin(GL_TRIANGLES);
+        // Oitão Frontal (Z = 10)
+        glNormal3f(0.0f, 0.0f, -1.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, 10.0f); 
+        glTexCoord2f(4.0f, 2.0f); glVertex3f( 10.0f, 4.0f, 10.0f); 
+        glTexCoord2f(2.0f, 4.0f); glVertex3f(  0.0f, picoY, 10.0f); 
+
+        // Oitão Traseiro (Z = -10)
+        glNormal3f(0.0f, 0.0f, 1.0f); 
+        glTexCoord2f(4.0f, 2.0f); glVertex3f( 10.0f, 4.0f, -10.0f); 
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, -10.0f); 
+        glTexCoord2f(2.0f, 4.0f); glVertex3f(  0.0f, picoY, -10.0f); 
+    glEnd();
+
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -315,25 +344,19 @@ void display(void) {
     float dirY = sinf(camPitch);
     float dirZ = -cosf(camYaw) * cosP;
 
-    // 1. A câmera é posicionada no mundo
     gluLookAt(camX, camY, camZ,                      
               camX + dirX, camY + dirY, camZ + dirZ, 
               0.0, 1.0, 0.0);                        
 
-    // ========================================================
-    // 2. CÓDIGO NOVO: As luzes são posicionadas FIXAS no mundo
-    // ========================================================
-    // A lâmpada fica fixa no teto da sala
     GLfloat light_position[] = { 0.0f, 3.5f, -3.0f, 1.0f }; 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
-    // O Sol fica fixo alto no céu, de frente para a fachada da casa (Z=30)
     GLfloat sol_posicao[] = { 0.0f, 15.0f, 30.0f, 0.0f }; 
     glLightfv(GL_LIGHT1, GL_POSITION, sol_posicao);
-    // ========================================================
 
     drawGround();
     drawHouse();
+    drawInternalWalls(); 
     drawTable();
 
     glutSwapBuffers(); 
@@ -342,7 +365,6 @@ void display(void) {
 void keyboard(unsigned char key, int x, int y) {
     float velocidade = 0.5f; 
 
-    // O cálculo de andar para frente e para os lados continua o mesmo
     float forwardX = sinf(camYaw);
     float forwardZ = -cosf(camYaw);
     float rightX = cosf(camYaw);
@@ -369,23 +391,16 @@ void keyboard(unsigned char key, int x, int y) {
             camX += rightX * velocidade;
             camZ += rightZ * velocidade;
             break;
-            
-        // ==========================================
-        // CÓDIGO NOVO: Controle de Altitude (Drone)
-        // ==========================================
-        case 'e': // Sobe no eixo Y
+        case 'e': 
         case 'E':
             camY += velocidade;
             break;
-        case 'q': // Desce no eixo Y
+        case 'q': 
         case 'Q':
             camY -= velocidade;
-            // Opcional: Travar a câmera para não afundar abaixo do chão
             if (camY < 0.5f) camY = 0.5f; 
             break;
-        // ==========================================
-
-        case 27: // Tecla ESC
+        case 27: 
             exit(0); 
             break;             
     }
