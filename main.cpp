@@ -697,6 +697,72 @@ void drawKitchenFurniture() {
     glPopMatrix();
 }
 
+/* Banheiro: piso no retângulo de (X,Z) ≈ (3,4) a (10,10) — parede Z=4 com porta ~5,2–6,8. */
+void drawBathroomFurniture() {
+    GLfloat porcelana[] = { 0.92f, 0.92f, 0.95f, 1.0f };
+    GLfloat cromado[] = { 0.72f, 0.74f, 0.78f, 1.0f };
+    GLfloat agua[] = { 0.5f, 0.62f, 0.72f, 1.0f };
+
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
+
+    /* Banheira — parede externa X=10, eixo longitudinal Z */
+    glPushMatrix();
+    glTranslatef(9.05f, 0.22f, 7.0f);
+    glScalef(1.0f, 0.42f, 2.05f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, agua);
+    glPushMatrix();
+    glTranslatef(9.05f, 0.30f, 7.0f);
+    glScalef(0.82f, 0.14f, 1.78f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    /* Pia — rotação 90° em Y (antes -90° + 180°); pivô no XZ do armário */
+    const float piaPx = 3.58f, piaPz = 6.4f;
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
+    glPushMatrix();
+    glTranslatef(piaPx, 0.0f, piaPz);
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 0.34f, 0.0f);
+    glScalef(0.40f, 0.68f, 0.44f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(piaPx, 0.0f, piaPz);
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 0.71f, 0.03f);
+    glScalef(0.46f, 0.12f, 0.38f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, cromado);
+    glPushMatrix();
+    glTranslatef(piaPx, 0.0f, piaPz);
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 0.82f, -0.18f);
+    glScalef(0.05f, 0.14f, 0.05f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    /* Vaso — 180° em Y; pivô na bacia (XZ) */
+    const float vasoPx = 7.85f, vasoPz = 9.05f;
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
+    glPushMatrix();
+    glTranslatef(vasoPx, 0.0f, vasoPz);
+    glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 0.21f, 0.0f);
+    glScalef(0.38f, 0.24f, 0.48f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(vasoPx, 0.0f, vasoPz);
+    glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 0.50f, -0.27f);
+    glScalef(0.34f, 0.42f, 0.22f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+}
+
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     glLoadIdentity(); 
@@ -723,6 +789,7 @@ void display(void) {
     drawTable();
     drawBedroomsFurniture();
     drawKitchenFurniture();
+    drawBathroomFurniture();
 
     glutSwapBuffers(); 
 }
