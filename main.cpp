@@ -17,7 +17,8 @@ GLuint texPorta;
 // NOVAS TEXTURAS DA COZINHA
 GLuint texGeladeira;
 GLuint texMarmore;
-GLuint texFogao;
+GLuint texFogaoFrente;
+GLuint texFogaoCima;
 
 // Posição inicial da nossa câmera no mundo 3D
 float camX = 0.0f; 
@@ -112,7 +113,8 @@ void init(void) {
     // CARREGANDO AS TEXTURAS DOS MÓVEIS
     texGeladeira = loadTexture("texturas/geladeira.jpg");
     texMarmore = loadTexture("texturas/marmore.jpg");
-    texFogao = loadTexture("texturas/fogao.jpg");
+    texFogaoFrente = loadTexture("texturas/fogao_frente.png");
+    texFogaoCima = loadTexture("texturas/fogao_cima.png");
 }
 
 void reshape(int w, int h) {
@@ -537,6 +539,126 @@ void drawTable() {
     glPopMatrix(); 
 }
 
+static void drawBed(float cx, float cz) {
+    GLfloat colchao[] = { 0.52f, 0.5f, 0.62f, 1.0f };
+    GLfloat cabeceira[] = { 0.38f, 0.24f, 0.14f, 1.0f };
+
+    const float compX = 2.0f;
+    const float largZ = 2.25f;
+
+    glPushMatrix();
+    glTranslatef(cx, 0.14f, cz);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, colchao);
+    glScalef(compX, 0.28f, largZ);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(cx, 0.52f, cz - 0.5f * largZ - 0.06f);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, cabeceira);
+    glScalef(2.05f, 0.9f, 0.12f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+}
+
+static void drawStudyDesk(float tx, float tz) {
+    GLfloat tampo[] = { 0.52f, 0.36f, 0.2f, 1.0f };
+    GLfloat perna[] = { 0.32f, 0.18f, 0.1f, 1.0f };
+
+    glPushMatrix();
+    glTranslatef(tx, 0.0f, tz);
+
+    glPushMatrix();
+    glTranslatef(0.0f, 0.76f, 0.0f);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, tampo);
+    glScalef(1.35f, 0.07f, 0.58f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, perna);
+    glPushMatrix();
+    glTranslatef(-0.52f, 0.38f, 0.22f);
+    glScalef(0.08f, 0.76f, 0.08f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.52f, 0.38f, 0.22f);
+    glScalef(0.08f, 0.76f, 0.08f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(-0.52f, 0.38f, -0.22f);
+    glScalef(0.08f, 0.76f, 0.08f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.52f, 0.38f, -0.22f);
+    glScalef(0.08f, 0.76f, 0.08f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glPopMatrix();
+}
+
+static void drawChair(float tx, float tz, float rotYDeg) {
+    GLfloat assento[] = { 0.25f, 0.22f, 0.35f, 1.0f };
+    GLfloat encosto[] = { 0.22f, 0.2f, 0.32f, 1.0f };
+
+    glPushMatrix();
+    glTranslatef(tx, 0.0f, tz);
+    glRotatef(rotYDeg, 0.0f, 1.0f, 0.0f);
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, assento);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.44f, 0.0f);
+    glScalef(0.46f, 0.08f, 0.42f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, encosto);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.72f, -0.18f);
+    glScalef(0.44f, 0.48f, 0.09f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, assento);
+    glPushMatrix();
+    glTranslatef(-0.17f, 0.22f, -0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.17f, 0.22f, -0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(-0.17f, 0.22f, 0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.17f, 0.22f, 0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glPopMatrix();
+}
+
+void drawBedroomsFurniture() {
+    /* Quarto 1: X -3..4, Z -10..0 — cama no fundo; mesa perto da porta (Z≈0) */
+    drawBed(0.35f, -8.85f);
+    drawStudyDesk(2.45f, -2.75f);
+    drawChair(2.45f, -1.85f, 180.0f);
+
+    /* Quarto 2: X 4..10, Z -10..0 */
+    drawBed(7.0f, -8.85f);
+    drawStudyDesk(8.4f, -2.75f);
+    drawChair(8.4f, -1.85f, 180.0f);
+}
+
 // ==========================================
 // MÓVEIS DA COZINHA ATUALIZADOS (Com Texturas)
 // ==========================================
@@ -570,19 +692,8 @@ void drawKitchenFurniture() {
     glPushMatrix();
         glTranslatef(-7.5f, 0.45f, -9.2f); 
         glScalef(0.8f, 0.9f, 0.8f);
-        // Usa a textura do fogão na frente.
-        drawTexturedCube(texFogao, 0, 0);
-    glPopMatrix();
-
-    // "Grade/Bocas" do fogão (Chapa Preta)
-    GLfloat mat_preto[] = { 0.1f, 0.1f, 0.1f, 1.0f };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_preto);
-    
-    glPushMatrix();
-        glTranslatef(-7.5f, 0.925f, -9.2f); 
-        glScalef(0.75f, 0.05f, 0.75f);
-        // Passamos 0 em tudo para não ter textura, ficando apenas a cor preta sólida
-        drawTexturedCube(0, 0, 0);
+        // Frente: fogao_frente; topo: fogao_cima; laterais sem textura (material branco).
+        drawTexturedCube(texFogaoFrente, 0, texFogaoCima);
     glPopMatrix();
 }
 
@@ -610,7 +721,8 @@ void display(void) {
     drawInternalWalls();
     drawDoors(); 
     drawTable();
-    drawKitchenFurniture(); 
+    drawBedroomsFurniture();
+    drawKitchenFurniture();
 
     glutSwapBuffers(); 
 }
