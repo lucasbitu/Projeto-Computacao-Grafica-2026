@@ -14,11 +14,12 @@ GLuint texTelhado;
 GLuint texGesso; 
 GLuint texPorta; 
 
-// NOVAS TEXTURAS DA COZINHA
+// TEXTURAS DOS MÓVEIS
 GLuint texGeladeira;
 GLuint texMarmore;
 GLuint texFogaoFrente;
 GLuint texFogaoCima;
+GLuint texGuardaRoupa;
 
 // Posição inicial da nossa câmera no mundo 3D
 float camX = 0.0f; 
@@ -110,11 +111,12 @@ void init(void) {
     texGesso = loadTexture("texturas/gesso.jpg");
     texPorta = loadTexture("texturas/porta.jpg"); 
 
-    // CARREGANDO AS TEXTURAS DOS MÓVEIS
     texGeladeira = loadTexture("texturas/geladeira.jpg");
     texMarmore = loadTexture("texturas/marmore.jpg");
     texFogaoFrente = loadTexture("texturas/fogao_frente.png");
     texFogaoCima = loadTexture("texturas/fogao_cima.png");
+    
+    texGuardaRoupa = loadTexture("texturas/guarda_roupa1.png"); 
 }
 
 void reshape(int w, int h) {
@@ -128,11 +130,7 @@ void reshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW); 
 }
 
-// ==========================================
-// NOVO: Cubo Inteligente para Móveis Texturizados
-// ==========================================
 void drawTexturedCube(GLuint texFrente, GLuint texLados, GLuint texTopo) {
-    // FRENTE (Z = 0.5)
     if (texFrente > 0) { glEnable(GL_TEXTURE_2D); glBindTexture(GL_TEXTURE_2D, texFrente); }
     else glDisable(GL_TEXTURE_2D);
     
@@ -144,30 +142,28 @@ void drawTexturedCube(GLuint texFrente, GLuint texLados, GLuint texTopo) {
         glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
     glEnd();
 
-    // LADOS (Trás, Esquerda, Direita, Baixo)
     if (texLados > 0) { glEnable(GL_TEXTURE_2D); glBindTexture(GL_TEXTURE_2D, texLados); }
     else glDisable(GL_TEXTURE_2D);
 
     glBegin(GL_QUADS);
-        // Trás
         glNormal3f(0.0f, 0.0f, -1.0f);
         glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
         glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
         glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
-        // Esquerda
+        
         glNormal3f(-1.0f, 0.0f, 0.0f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
         glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
         glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
         glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
-        // Direita
+        
         glNormal3f(1.0f, 0.0f, 0.0f);
         glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5f, -0.5f,  0.5f);
         glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5f,  0.5f,  0.5f);
         glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
-        // Baixo
+        
         glNormal3f(0.0f, -1.0f, 0.0f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
         glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
@@ -175,7 +171,6 @@ void drawTexturedCube(GLuint texFrente, GLuint texLados, GLuint texTopo) {
         glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
     glEnd();
 
-    // TOPO (Y = 0.5)
     if (texTopo > 0) { glEnable(GL_TEXTURE_2D); glBindTexture(GL_TEXTURE_2D, texTopo); }
     else glDisable(GL_TEXTURE_2D);
 
@@ -187,11 +182,8 @@ void drawTexturedCube(GLuint texFrente, GLuint texLados, GLuint texTopo) {
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
     glEnd();
     
-    // Garante que a textura volte a ficar ligada pro resto da cena
     glEnable(GL_TEXTURE_2D);
 }
-// ==========================================
-
 
 void drawGround() {
     glDisable(GL_LIGHTING); 
@@ -227,7 +219,6 @@ void drawInternalWalls() {
     const float bzSala = 0.42f;
 
     glBegin(GL_QUADS);
-        // 1. PAREDE CENTRAL (Z = 0)
         glNormal3f(0.0f, 0.0f, 1.0f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-3.0f, 0.0f, 0.0f);
         glTexCoord2f(2.15f, 0.0f); glVertex3f(q1a, 0.0f, 0.0f);
@@ -254,28 +245,24 @@ void drawInternalWalls() {
         glTexCoord2f(10.0f, 2.0f); glVertex3f(10.0f, 4.0f, 0.0f);
         glTexCoord2f(8.31f, 2.0f); glVertex3f(q2b, 4.0f, 0.0f);
 
-        // 2. DIVISÓRIA SALA / SUÍTE
         glNormal3f(-1.0f, 0.0f, 0.0f); 
         glTexCoord2f(0.0f, 0.0f); glVertex3f(3.0f, 0.0f,  10.0f); 
         glTexCoord2f(5.0f, 0.0f); glVertex3f(3.0f, 0.0f,   4.0f); 
         glTexCoord2f(5.0f, 2.0f); glVertex3f(3.0f, 4.0f,   4.0f); 
         glTexCoord2f(0.0f, 2.0f); glVertex3f(3.0f, 4.0f,  10.0f); 
 
-        // 3. DIVISÓRIA COZINHA / QUARTO 1
         glNormal3f(1.0f, 0.0f, 0.0f); 
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-3.0f, 0.0f,   0.0f); 
         glTexCoord2f(5.0f, 0.0f); glVertex3f(-3.0f, 0.0f, -10.0f); 
         glTexCoord2f(5.0f, 2.0f); glVertex3f(-3.0f, 4.0f, -10.0f); 
         glTexCoord2f(0.0f, 2.0f); glVertex3f(-3.0f, 4.0f,   0.0f); 
 
-        // 4. DIVISÓRIA QUARTO 1 / QUARTO 2
         glNormal3f(-1.0f, 0.0f, 0.0f); 
         glTexCoord2f(0.0f, 0.0f); glVertex3f(4.0f, 0.0f,   0.0f); 
         glTexCoord2f(5.0f, 0.0f); glVertex3f(4.0f, 0.0f, -10.0f); 
         glTexCoord2f(5.0f, 2.0f); glVertex3f(4.0f, 4.0f, -10.0f); 
         glTexCoord2f(0.0f, 2.0f); glVertex3f(4.0f, 4.0f,   0.0f); 
 
-        // 5. DIVISÓRIA BANHEIROS / SUÍTE
         glNormal3f(0.0f, 0.0f, 1.0f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f( 3.0f, 0.0f, 4.0f);
         glTexCoord2f(1.1f, 0.0f); glVertex3f(bathXa, 0.0f, 4.0f);
@@ -292,14 +279,12 @@ void drawInternalWalls() {
         glTexCoord2f(3.5f, 2.0f); glVertex3f(10.0f, 4.0f, 4.0f);
         glTexCoord2f(1.9f, 2.0f); glVertex3f(bathXb, 4.0f, 4.0f);
 
-        // 6. MURETA COZINHA
         glNormal3f(0.0f, 0.0f, 1.0f); 
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-3.0f, 0.0f, 0.0f); 
         glTexCoord2f(10.0f, 0.0f); glVertex3f( -6.0f, 0.0f, 0.0f); 
         glTexCoord2f(10.0f, 2.0f); glVertex3f( -6.0f, 1.7f, 0.0f); 
         glTexCoord2f(0.0f, 2.0f); glVertex3f(-3.0f, 1.7f, 0.0f); 
 
-        // Tampo do balcão
         glBindTexture(GL_TEXTURE_2D, texPiso);
         GLfloat mat_balcao[] = { 0.88f, 0.86f, 0.82f, 1.0f };
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_balcao);
@@ -318,7 +303,6 @@ void drawHouse() {
     GLfloat material_branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
 
-    // 1. O CHÃO
     glBindTexture(GL_TEXTURE_2D, texPiso); 
     glBegin(GL_QUADS); 
         glNormal3f(0.0f, 1.0f, 0.0f); 
@@ -328,7 +312,6 @@ void drawHouse() {
         glTexCoord2f(10.0f, 0.0f);  glVertex3f( 10.0f, 0.0f, -10.0f); 
     glEnd();
 
-    // 2. AS PAREDES EXTERNAS
     glBindTexture(GL_TEXTURE_2D, texParede);
     const float frontDoorXa = -6.4f - 0.5f * DOOR_W;
     const float frontDoorXb = frontDoorXa + DOOR_W;
@@ -369,7 +352,6 @@ void drawHouse() {
         glTexCoord2f(0.56f, 2.0f); glVertex3f(frontDoorXa, 4.0f, 10.0f);
     glEnd();
 
-    // 3. O TETO INTERNO
     glBindTexture(GL_TEXTURE_2D, texGesso);
     GLfloat material_teto[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_teto);
@@ -382,7 +364,6 @@ void drawHouse() {
         glTexCoord2f(0.0f, 10.0f);  glVertex3f(-10.0f, 4.0f, -10.0f);
     glEnd();
 
-    // 4. ESTRUTURA DO TELHADO EXTERNO
     glBindTexture(GL_TEXTURE_2D, texTelhado);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
     float picoY = 8.0f;
@@ -501,42 +482,85 @@ void drawDoors() {
     glBindTexture(GL_TEXTURE_2D, 0); 
 }
 
-void drawTable() {
+static void drawChair(float tx, float tz, float rotYDeg) {
+    GLfloat assento[] = { 0.25f, 0.22f, 0.35f, 1.0f };
+    GLfloat encosto[] = { 0.22f, 0.2f, 0.32f, 1.0f };
+
+    glPushMatrix();
+    glTranslatef(tx, 0.0f, tz);
+    glRotatef(rotYDeg, 0.0f, 1.0f, 0.0f);
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, assento);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.44f, 0.0f);
+    glScalef(0.46f, 0.08f, 0.42f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, encosto);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.72f, -0.18f);
+    glScalef(0.44f, 0.48f, 0.09f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, assento);
+    glPushMatrix();
+    glTranslatef(-0.17f, 0.22f, -0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.17f, 0.22f, -0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(-0.17f, 0.22f, 0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.17f, 0.22f, 0.15f);
+    glScalef(0.07f, 0.44f, 0.07f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glPopMatrix();
+}
+
+void drawDiningTable() {
+    float tableX = 0.5f; // <--- MESA REPOSICIONADA: Mais perto do banheiro/corredor
+    float tableZ = 4.5f; // <--- Centralizada na nova área
+
     glPushMatrix(); 
-    glTranslatef(-4.5f, 0.5f, 3.0f); 
+    glTranslatef(tableX, 0.5f, tableZ); 
 
     glPushMatrix(); 
         GLfloat tampo_difuso[] = { 0.6f, 0.4f, 0.2f, 1.0f };
         glMaterialfv(GL_FRONT, GL_DIFFUSE, tampo_difuso);
-        glScalef(2.0f, 0.1f, 1.0f);  
+        glScalef(1.2f, 0.1f, 2.4f);  
         glutSolidCube(1.0); 
     glPopMatrix(); 
 
     GLfloat perna_difusa[] = { 0.4f, 0.2f, 0.1f, 1.0f };
     glMaterialfv(GL_FRONT, GL_DIFFUSE, perna_difusa);
+    float px = 0.5f;
+    float pz = 1.0f;
 
-    glPushMatrix();
-        glTranslatef(-0.9f, -0.45f, 0.4f); 
-        glScalef(0.1f, 0.9f, 0.1f);
-        glutSolidCube(1.0);
-    glPopMatrix();
-    glPushMatrix();
-        glTranslatef(0.9f, -0.45f, 0.4f); 
-        glScalef(0.1f, 0.9f, 0.1f);
-        glutSolidCube(1.0);
-    glPopMatrix();
-    glPushMatrix();
-        glTranslatef(-0.9f, -0.45f, -0.4f); 
-        glScalef(0.1f, 0.9f, 0.1f);
-        glutSolidCube(1.0);
-    glPopMatrix();
-    glPushMatrix();
-        glTranslatef(0.9f, -0.45f, -0.4f); 
-        glScalef(0.1f, 0.9f, 0.1f);
-        glutSolidCube(1.0);
-    glPopMatrix();
+    glPushMatrix(); glTranslatef(-px, -0.45f,  pz); glScalef(0.1f, 0.9f, 0.1f); glutSolidCube(1.0); glPopMatrix();
+    glPushMatrix(); glTranslatef( px, -0.45f,  pz); glScalef(0.1f, 0.9f, 0.1f); glutSolidCube(1.0); glPopMatrix();
+    glPushMatrix(); glTranslatef(-px, -0.45f, -pz); glScalef(0.1f, 0.9f, 0.1f); glutSolidCube(1.0); glPopMatrix();
+    glPushMatrix(); glTranslatef( px, -0.45f, -pz); glScalef(0.1f, 0.9f, 0.1f); glutSolidCube(1.0); glPopMatrix();
 
     glPopMatrix(); 
+
+    drawChair(tableX - 0.9f, tableZ - 0.6f, 90.0f);
+    drawChair(tableX - 0.9f, tableZ + 0.6f, 90.0f);
+    drawChair(tableX + 0.9f, tableZ - 0.6f, -90.0f);
+    drawChair(tableX + 0.9f, tableZ + 0.6f, -90.0f);
+    drawChair(tableX, tableZ - 1.5f, 0.0f);   
+    drawChair(tableX, tableZ + 1.5f, 180.0f); 
 }
 
 static void drawBed(float cx, float cz) {
@@ -600,104 +624,78 @@ static void drawStudyDesk(float tx, float tz) {
     glPopMatrix();
 }
 
-static void drawChair(float tx, float tz, float rotYDeg) {
-    GLfloat assento[] = { 0.25f, 0.22f, 0.35f, 1.0f };
-    GLfloat encosto[] = { 0.22f, 0.2f, 0.32f, 1.0f };
+void drawWardrobe(float tx, float tz, float rotYDeg) {
+    GLfloat mat_madeira[] = { 0.45f, 0.28f, 0.15f, 1.0f }; 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_madeira);
 
     glPushMatrix();
-    glTranslatef(tx, 0.0f, tz);
-    glRotatef(rotYDeg, 0.0f, 1.0f, 0.0f);
+        glTranslatef(tx, 1.1f, tz); 
+        glRotatef(rotYDeg, 0.0f, 1.0f, 0.0f);
+        
+        glPushMatrix();
+            glScalef(1.5f, 2.2f, 0.6f);
+            glDisable(GL_TEXTURE_2D); 
+            glutSolidCube(1.0);
+        glPopMatrix();
 
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, assento);
-    glPushMatrix();
-    glTranslatef(0.0f, 0.44f, 0.0f);
-    glScalef(0.46f, 0.08f, 0.42f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texGuardaRoupa);
+        
+        glBegin(GL_QUADS);
+            glNormal3f(0.0f, 0.0f, 1.0f);
+            glTexCoord2f(0.24f, 0.08f); glVertex3f(-0.75f, -1.1f, 0.301f); 
+            glTexCoord2f(0.76f, 0.08f); glVertex3f( 0.75f, -1.1f, 0.301f); 
+            glTexCoord2f(0.76f, 0.88f); glVertex3f( 0.75f,  1.1f, 0.301f); 
+            glTexCoord2f(0.24f, 0.88f); glVertex3f(-0.75f,  1.1f, 0.301f); 
+        glEnd();
 
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, encosto);
-    glPushMatrix();
-    glTranslatef(0.0f, 0.72f, -0.18f);
-    glScalef(0.44f, 0.48f, 0.09f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, assento);
-    glPushMatrix();
-    glTranslatef(-0.17f, 0.22f, -0.15f);
-    glScalef(0.07f, 0.44f, 0.07f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-    glPushMatrix();
-    glTranslatef(0.17f, 0.22f, -0.15f);
-    glScalef(0.07f, 0.44f, 0.07f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-    glPushMatrix();
-    glTranslatef(-0.17f, 0.22f, 0.15f);
-    glScalef(0.07f, 0.44f, 0.07f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
-    glPushMatrix();
-    glTranslatef(0.17f, 0.22f, 0.15f);
-    glScalef(0.07f, 0.44f, 0.07f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
+        glBindTexture(GL_TEXTURE_2D, 0);
 
     glPopMatrix();
 }
 
 void drawBedroomsFurniture() {
-    /* Quarto 1: X -3..4, Z -10..0 — cama no fundo; mesa perto da porta (Z≈0) */
+    /* Quarto 1: X -3..4, Z -10..0 */
     drawBed(0.35f, -8.85f);
     drawStudyDesk(2.45f, -2.75f);
     drawChair(2.45f, -1.85f, 180.0f);
+    drawWardrobe(-2.7f, -5.0f, 90.0f); 
 
     /* Quarto 2: X 4..10, Z -10..0 */
     drawBed(7.0f, -8.85f);
     drawStudyDesk(8.4f, -2.75f);
     drawChair(8.4f, -1.85f, 180.0f);
+    drawWardrobe(9.7f, -5.0f, -90.0f); 
 }
 
-// ==========================================
-// MÓVEIS DA COZINHA ATUALIZADOS (Com Texturas)
-// ==========================================
 void drawKitchenFurniture() {
-    // --- 1. GELADEIRA ---
-    // Usamos um material branco base para a textura aparecer com as cores reais
     GLfloat mat_branca[] = { 0.8f, 0.8f, 0.8f, 1.0f }; 
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_branca);
 
     glPushMatrix();
         glTranslatef(-9.0f, 1.0f, -9.2f); 
         glScalef(0.8f, 2.0f, 0.8f);
-        // Usa a textura da geladeira só na frente. Os lados ficam com o material branco.
         drawTexturedCube(texGeladeira, 0, 0);
     glPopMatrix();
 
-    // --- 2. BANCADA DA PIA ---
     GLfloat mat_neutro[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_neutro);
     
     glPushMatrix();
         glTranslatef(-5.0f, 0.45f, -9.2f); 
         glScalef(2.5f, 0.9f, 0.8f);
-        // Usa a textura de mármore em todos os lados (frente, lados, topo)
         drawTexturedCube(texMarmore, texMarmore, texMarmore);
     glPopMatrix();
 
-    // --- 3. FOGÃO ---
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_branca);
     
     glPushMatrix();
         glTranslatef(-7.5f, 0.45f, -9.2f); 
         glScalef(0.8f, 0.9f, 0.8f);
-        // Frente: fogao_frente; topo: fogao_cima; laterais sem textura (material branco).
         drawTexturedCube(texFogaoFrente, 0, texFogaoCima);
     glPopMatrix();
 }
 
-/* Banheiro: piso no retângulo de (X,Z) ≈ (3,4) a (10,10) — parede Z=4 com porta ~5,2–6,8. */
 void drawBathroomFurniture() {
     GLfloat porcelana[] = { 0.92f, 0.92f, 0.95f, 1.0f };
     GLfloat cromado[] = { 0.72f, 0.74f, 0.78f, 1.0f };
@@ -705,7 +703,6 @@ void drawBathroomFurniture() {
 
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
 
-    /* Banheira — parede externa X=10, eixo longitudinal Z */
     glPushMatrix();
     glTranslatef(9.05f, 0.22f, 7.0f);
     glScalef(1.0f, 0.42f, 2.05f);
@@ -718,7 +715,6 @@ void drawBathroomFurniture() {
     glutSolidCube(1.0f);
     glPopMatrix();
 
-    /* Pia — rotação 90° em Y (antes -90° + 180°); pivô no XZ do armário */
     const float piaPx = 3.58f, piaPz = 6.4f;
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
     glPushMatrix();
@@ -744,7 +740,6 @@ void drawBathroomFurniture() {
     glutSolidCube(1.0f);
     glPopMatrix();
 
-    /* Vaso — 180° em Y; pivô na bacia (XZ) */
     const float vasoPx = 7.85f, vasoPz = 9.05f;
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
     glPushMatrix();
@@ -761,6 +756,79 @@ void drawBathroomFurniture() {
     glScalef(0.34f, 0.42f, 0.22f);
     glutSolidCube(1.0f);
     glPopMatrix();
+}
+
+void drawLivingRoomFurniture() {
+    glDisable(GL_TEXTURE_2D);
+
+    // --- 1. SOFÁ ---
+    GLfloat mat_sofa[] = { 0.25f, 0.3f, 0.35f, 1.0f }; 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_sofa);
+
+    glPushMatrix();
+        glTranslatef(-5.5f, 0.0f, 6.0f); 
+        
+        glPushMatrix();
+            glTranslatef(0.0f, 0.25f, 0.0f);
+            glScalef(1.0f, 0.5f, 2.5f);
+            glutSolidCube(1.0);
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(0.35f, 0.6f, 0.0f);
+            glScalef(0.3f, 0.7f, 2.5f);
+            glutSolidCube(1.0);
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(0.0f, 0.45f, 1.35f);
+            glScalef(1.0f, 0.5f, 0.2f);
+            glutSolidCube(1.0);
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(0.0f, 0.45f, -1.35f);
+            glScalef(1.0f, 0.5f, 0.2f);
+            glutSolidCube(1.0);
+        glPopMatrix();
+    glPopMatrix();
+
+    // --- 2. RACK DA TV ---
+    GLfloat mat_rack[] = { 0.45f, 0.28f, 0.15f, 1.0f }; 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_rack);
+    
+    glPushMatrix();
+        glTranslatef(-9.5f, 0.25f, 6.0f);
+        glScalef(0.6f, 0.5f, 2.2f);
+        glutSolidCube(1.0);
+    glPopMatrix();
+
+    // --- 3. TELEVISÃO ---
+    GLfloat mat_tv_borda[] = { 0.1f, 0.1f, 0.1f, 1.0f }; 
+    GLfloat mat_tv_tela[]  = { 0.05f, 0.05f, 0.1f, 1.0f }; 
+    
+    glPushMatrix();
+        glTranslatef(-9.5f, 0.85f, 6.0f); 
+        
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_tv_borda);
+        glPushMatrix();
+            glTranslatef(0.0f, -0.2f, 0.0f);
+            glScalef(0.4f, 0.05f, 0.6f);
+            glutSolidCube(1.0);
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(0.0f, -0.1f, 0.0f);
+            glScalef(0.1f, 0.2f, 0.1f);
+            glutSolidCube(1.0);
+        glPopMatrix();
+
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_tv_tela);
+        glScalef(0.1f, 0.9f, 1.6f);
+        glutSolidCube(1.0);
+    glPopMatrix();
+
+    glEnable(GL_TEXTURE_2D); 
 }
 
 void display(void) {
@@ -786,10 +854,11 @@ void display(void) {
     drawHouse();
     drawInternalWalls();
     drawDoors(); 
-    drawTable();
+    drawDiningTable(); 
     drawBedroomsFurniture();
     drawKitchenFurniture();
     drawBathroomFurniture();
+    drawLivingRoomFurniture(); 
 
     glutSwapBuffers(); 
 }
