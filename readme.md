@@ -8,10 +8,10 @@ Este projeto é uma simulação 3D em OpenGL de um ambiente virtual (uma casa). 
 No Linux (Ubuntu/Debian), instale com: `sudo apt-get install freeglut3-dev`
 
 Para compilar, abra o terminal na pasta do projeto e execute:
-`g++ main.cpp -o main -lGL -lGLU -lglut`
+g++ src/main.cpp src/texturas_util.cpp src/camera.cpp src/moveis.cpp src/cenario.cpp -I include -lGL -lGLU -lglut -o simulador
 
 Para executar o programa:
-`./main`
+`./simulador`
 
 ## 🧩 Elementos das Atividades Práticas
 O projeto engloba os seguintes requisitos exigidos:
