@@ -123,6 +123,14 @@ void display(void) {
     glutSwapBuffers(); 
 }
 
+// A FUNÇÃO IDLE GARANTE QUE A ANIMAÇÃO CORRE SOZINHA
+void idle() {
+    if (tourAtivo) {
+        updateTour();
+        glutPostRedisplay();
+    }
+}
+
 int main(int argc, char** argv) {
     glutInit(&argc, argv); 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); 
@@ -135,6 +143,9 @@ int main(int argc, char** argv) {
     
     glutKeyboardFunc(keyboard);
     glutSpecialFunc(specialKeys);
+    
+    // Regista a função idle para o Tour Virtual
+    glutIdleFunc(idle); 
 
     glutMainLoop(); 
     return 0;
