@@ -21,6 +21,9 @@ GLuint texFogaoFrente;
 GLuint texFogaoCima;
 GLuint texGuardaRoupa;
 
+// TEXTURA DO CÉU
+GLuint texCeu; 
+
 // Posição inicial da nossa câmera no mundo 3D
 float camX = 0.0f; 
 float camY = 2.0f; 
@@ -115,8 +118,10 @@ void init(void) {
     texMarmore = loadTexture("texturas/marmore.jpg");
     texFogaoFrente = loadTexture("texturas/fogao_frente.png");
     texFogaoCima = loadTexture("texturas/fogao_cima.png");
-    
     texGuardaRoupa = loadTexture("texturas/guarda_roupa1.png"); 
+    
+    // NOME CORRIGIDO CONFORME SEU PEDIDO
+    texCeu = loadTexture("texturas/ceu.jpg"); 
 }
 
 void reshape(int w, int h) {
@@ -126,8 +131,47 @@ void reshape(int w, int h) {
     glViewport(0, 0, w, h); 
     glMatrixMode(GL_PROJECTION); 
     glLoadIdentity(); 
-    gluPerspective(60.0, aspect, 0.1, 100.0); 
+    
+    gluPerspective(60.0, aspect, 0.1, 500.0); 
+    
     glMatrixMode(GL_MODELVIEW); 
+}
+
+// ==========================================
+// O SKYDOME (Céu Esférico HDRI Atualizado)
+// ==========================================
+void drawSkybox() {
+    glDisable(GL_LIGHTING); 
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texCeu);
+    glColor3f(1.0f, 1.0f, 1.0f); 
+
+    glPushMatrix();
+        // A MÁGICA 1: O céu segue a câmera em X e Z, mas fica travado ABAIXO do chão em Y!
+        // Isso enterra a parte preta da imagem no subterrâneo.
+        glTranslatef(camX, -10.0f, camZ); 
+        
+        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+
+        GLUquadric* quadric = gluNewQuadric();
+        gluQuadricTexture(quadric, GL_TRUE);        
+        gluQuadricOrientation(quadric, GLU_INSIDE); 
+        
+        // A MÁGICA 2: Desliga a escrita de profundidade!
+        // O OpenGL vai pintar o céu como cenário de fundo, e a grama SEMPRE será 
+        // desenhada na frente dele, não importa a distância.
+        glDepthMask(GL_FALSE);
+        
+        gluSphere(quadric, 300.0, 50, 50); 
+        
+        // Religa a profundidade para o resto do mundo não bugar
+        glDepthMask(GL_TRUE);
+        
+        gluDeleteQuadric(quadric);
+    glPopMatrix();
+
+    glEnable(GL_LIGHTING); 
 }
 
 void drawTexturedCube(GLuint texFrente, GLuint texLados, GLuint texTopo) {
@@ -191,14 +235,14 @@ void drawGround() {
     glBindTexture(GL_TEXTURE_2D, texGramado);
 
     const float y = -0.01f;
-    const float size = 200.0f;
+    const float size = 500.0f;
 
     glBegin(GL_QUADS);
         glNormal3f(0.0f, 1.0f, 0.0f);
         glTexCoord2f(0.0f,   0.0f);   glVertex3f(-size, y, -size);
-        glTexCoord2f(0.0f,   200.0f); glVertex3f(-size, y,  size);
-        glTexCoord2f(200.0f, 200.0f); glVertex3f( size, y,  size);
-        glTexCoord2f(200.0f, 0.0f);   glVertex3f( size, y, -size);
+        glTexCoord2f(0.0f,   500.0f); glVertex3f(-size, y,  size);
+        glTexCoord2f(500.0f, 500.0f); glVertex3f( size, y,  size);
+        glTexCoord2f(500.0f, 0.0f);   glVertex3f( size, y, -size);
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -530,8 +574,8 @@ static void drawChair(float tx, float tz, float rotYDeg) {
 }
 
 void drawDiningTable() {
-    float tableX = 0.5f; // <--- MESA REPOSICIONADA: Mais perto do banheiro/corredor
-    float tableZ = 4.5f; // <--- Centralizada na nova área
+    float tableX = 0.5f; 
+    float tableZ = 4.5f; 
 
     glPushMatrix(); 
     glTranslatef(tableX, 0.5f, tableZ); 
@@ -655,13 +699,11 @@ void drawWardrobe(float tx, float tz, float rotYDeg) {
 }
 
 void drawBedroomsFurniture() {
-    /* Quarto 1: X -3..4, Z -10..0 */
     drawBed(0.35f, -8.85f);
     drawStudyDesk(2.45f, -2.75f);
     drawChair(2.45f, -1.85f, 180.0f);
     drawWardrobe(-2.7f, -5.0f, 90.0f); 
 
-    /* Quarto 2: X 4..10, Z -10..0 */
     drawBed(7.0f, -8.85f);
     drawStudyDesk(8.4f, -2.75f);
     drawChair(8.4f, -1.85f, 180.0f);
@@ -761,7 +803,6 @@ void drawBathroomFurniture() {
 void drawLivingRoomFurniture() {
     glDisable(GL_TEXTURE_2D);
 
-    // --- 1. SOFÁ ---
     GLfloat mat_sofa[] = { 0.25f, 0.3f, 0.35f, 1.0f }; 
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_sofa);
 
@@ -793,7 +834,6 @@ void drawLivingRoomFurniture() {
         glPopMatrix();
     glPopMatrix();
 
-    // --- 2. RACK DA TV ---
     GLfloat mat_rack[] = { 0.45f, 0.28f, 0.15f, 1.0f }; 
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_rack);
     
@@ -803,7 +843,6 @@ void drawLivingRoomFurniture() {
         glutSolidCube(1.0);
     glPopMatrix();
 
-    // --- 3. TELEVISÃO ---
     GLfloat mat_tv_borda[] = { 0.1f, 0.1f, 0.1f, 1.0f }; 
     GLfloat mat_tv_tela[]  = { 0.05f, 0.05f, 0.1f, 1.0f }; 
     
@@ -843,6 +882,8 @@ void display(void) {
     gluLookAt(camX, camY, camZ,                      
               camX + dirX, camY + dirY, camZ + dirZ, 
               0.0, 1.0, 0.0);                        
+
+    drawSkybox();
 
     GLfloat light_position[] = { 0.0f, 3.5f, -3.0f, 1.0f }; 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
