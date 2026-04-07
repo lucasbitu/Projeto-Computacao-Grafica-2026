@@ -15,6 +15,91 @@ float calcularDistancia(float x1, float z1, float x2, float z2) {
     return sqrt((x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2));
 }
 
+/* Uma luz de teto por cômodo — posições alinhadas à luminária em drawCeilingLampFixtures */
+static const int NUM_LUZES_TETO = 6;
+static const float LUZ_TETO_X[NUM_LUZES_TETO] = {
+    -6.5f, 0.5f, 7.0f, 0.5f, -6.5f, 6.5f
+};
+static const float LUZ_TETO_Z[NUM_LUZES_TETO] = {
+    -5.0f, -5.0f, -5.0f, 5.5f, 5.5f, 7.0f
+};
+/* Teto interior em drawHouse: y = 4.0; fonte ligeiramente abaixo do plafon (sem sombras no GL fixo) */
+static const float LUZ_TETO_Y = 3.88f;
+
+void updateRoomLightPositions(void) {
+    for (int i = 0; i < NUM_LUZES_TETO; i++) {
+        GLfloat p[] = { LUZ_TETO_X[i], LUZ_TETO_Y, LUZ_TETO_Z[i], 1.0f };
+        glLightfv(GL_LIGHT1 + i, GL_POSITION, p);
+    }
+}
+
+static void drawOneCeilingLamp(float cx, float cz) {
+    const float yBottom = 3.91f;
+    const float yTop = 3.995f;
+    const float hx = 0.32f;
+    const float hz = 0.42f;
+    const float x0 = cx - hx;
+    const float x1 = cx + hx;
+    const float z0 = cz - hz;
+    const float z1 = cz + hz;
+
+    glBegin(GL_QUADS);
+        glNormal3f(0.0f, -1.0f, 0.0f);
+        glVertex3f(x0, yBottom, z0);
+        glVertex3f(x1, yBottom, z0);
+        glVertex3f(x1, yBottom, z1);
+        glVertex3f(x0, yBottom, z1);
+
+        glNormal3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(x0, yTop, z0);
+        glVertex3f(x0, yTop, z1);
+        glVertex3f(x1, yTop, z1);
+        glVertex3f(x1, yTop, z0);
+
+        glNormal3f(-1.0f, 0.0f, 0.0f);
+        glVertex3f(x0, yBottom, z0);
+        glVertex3f(x0, yBottom, z1);
+        glVertex3f(x0, yTop, z1);
+        glVertex3f(x0, yTop, z0);
+
+        glNormal3f(1.0f, 0.0f, 0.0f);
+        glVertex3f(x1, yBottom, z1);
+        glVertex3f(x1, yBottom, z0);
+        glVertex3f(x1, yTop, z0);
+        glVertex3f(x1, yTop, z1);
+
+        glNormal3f(0.0f, 0.0f, -1.0f);
+        glVertex3f(x0, yBottom, z0);
+        glVertex3f(x1, yBottom, z0);
+        glVertex3f(x1, yTop, z0);
+        glVertex3f(x0, yTop, z0);
+
+        glNormal3f(0.0f, 0.0f, 1.0f);
+        glVertex3f(x1, yBottom, z1);
+        glVertex3f(x0, yBottom, z1);
+        glVertex3f(x0, yTop, z1);
+        glVertex3f(x1, yTop, z1);
+    glEnd();
+}
+
+void drawCeilingLampFixtures(void) {
+    glDisable(GL_TEXTURE_2D);
+    GLfloat dif[] = { 0.9f, 0.9f, 0.88f, 1.0f };
+    GLfloat emi[] = { 0.12f, 0.12f, 0.1f, 1.0f };
+    GLfloat spec[] = { 0.35f, 0.35f, 0.35f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dif);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 24.0f);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emi);
+
+    for (int i = 0; i < NUM_LUZES_TETO; i++)
+        drawOneCeilingLamp(LUZ_TETO_X[i], LUZ_TETO_Z[i]);
+
+    GLfloat noEmi[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, noEmi);
+    glEnable(GL_TEXTURE_2D);
+}
+
 void drawSkybox() {
     glDisable(GL_LIGHTING); 
 
@@ -69,8 +154,10 @@ void drawInternalWalls() {
     const float q1a = -0.2f, q1b = q1a + DOOR_W;
     const float q2a = 6.2f, q2b = q2a + DOOR_W;
     const float bathXa = 5.2f, bathXb = bathXa + DOOR_W;
-    const float muretaTopoY = 1.7f;
-    const float balcaoY = muretaTopoY + 0.03f;
+    const float muretaTopoY = 1.32f;
+    /* Tampo no mesmo nível do topo da mureta (sem folga vertical) */
+    const float balcaoY = muretaTopoY;
+    const float muretaTexV = muretaTopoY * (2.0f / 1.7f);
     const float bzCoz = -0.55f;
     const float bzSala = 0.42f;
 
@@ -138,17 +225,20 @@ void drawInternalWalls() {
         glNormal3f(0.0f, 0.0f, 1.0f); 
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-3.0f, 0.0f, 0.0f); 
         glTexCoord2f(10.0f, 0.0f); glVertex3f( -6.0f, 0.0f, 0.0f); 
-        glTexCoord2f(10.0f, 2.0f); glVertex3f( -6.0f, 1.7f, 0.0f); 
-        glTexCoord2f(0.0f, 2.0f); glVertex3f(-3.0f, 1.7f, 0.0f); 
+        glTexCoord2f(10.0f, muretaTexV); glVertex3f( -6.0f, muretaTopoY, 0.0f); 
+        glTexCoord2f(0.0f, muretaTexV); glVertex3f(-3.0f, muretaTopoY, 0.0f); 
 
         glBindTexture(GL_TEXTURE_2D, texPiso);
         GLfloat mat_balcao[] = { 0.88f, 0.86f, 0.82f, 1.0f };
+        GLfloat amb_balcao[] = { 0.36f, 0.35f, 0.33f, 1.0f };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb_balcao);
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_balcao);
+        /* CCW visto de +Y para normal geométrica (0,1,0) coincidir com a iluminação */
         glNormal3f(0.0f, 1.0f, 0.0f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-6.0f, balcaoY, bzCoz);
-        glTexCoord2f(3.0f, 0.0f); glVertex3f(-3.0f, balcaoY, bzCoz);
-        glTexCoord2f(3.0f, 1.0f); glVertex3f(-3.0f, balcaoY, bzSala);
         glTexCoord2f(0.0f, 1.0f); glVertex3f(-6.0f, balcaoY, bzSala);
+        glTexCoord2f(3.0f, 1.0f); glVertex3f(-3.0f, balcaoY, bzSala);
+        glTexCoord2f(3.0f, 0.0f); glVertex3f(-3.0f, balcaoY, bzCoz);
         glBindTexture(GL_TEXTURE_2D, texParede);
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
     glEnd();

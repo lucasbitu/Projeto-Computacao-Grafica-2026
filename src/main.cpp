@@ -14,23 +14,31 @@ void init(void) {
     glEnable(GL_DEPTH_TEST); 
     glShadeModel(GL_SMOOTH); 
 
-    GLfloat light_ambient[]  = { 0.2f, 0.2f, 0.2f, 1.0f }; 
-    GLfloat light_diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f }; 
-    GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; 
+    GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    /* Luz solar (direcional) — iluminação geral exterior */
+    GLfloat sol_difusa[]   = { 0.45f, 0.45f, 0.45f, 1.0f };
+    GLfloat sol_ambiente[] = { 0.18f, 0.18f, 0.2f, 1.0f };
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, sol_difusa);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, sol_ambiente);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+
+    /* Um ponto de luz no teto por cômodo (atenuação limita o alcance a cada divisão) */
+    GLfloat luz_comodo_dif[] = { 0.75f, 0.75f, 0.72f, 1.0f };
+    GLfloat luz_comodo_amb[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    for (int i = 1; i <= 6; i++) {
+        GLenum L = GL_LIGHT0 + i;
+        glLightfv(L, GL_DIFFUSE, luz_comodo_dif);
+        glLightfv(L, GL_AMBIENT, luz_comodo_amb);
+        glLightfv(L, GL_SPECULAR, light_specular);
+        glLightf(L, GL_CONSTANT_ATTENUATION, 1.0f);
+        glLightf(L, GL_LINEAR_ATTENUATION, 0.07f);
+        glLightf(L, GL_QUADRATIC_ATTENUATION, 0.04f);
+        glEnable(L);
+    }
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-
-    GLfloat sol_difusa[] = { 0.7f, 0.7f, 0.7f, 1.0f }; 
-    GLfloat sol_ambiente[] = { 0.6f, 0.6f, 0.6f, 1.0f };
-
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, sol_difusa);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, sol_ambiente); 
-    glEnable(GL_LIGHT1); 
 
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
@@ -45,10 +53,20 @@ void init(void) {
 
     texGeladeira = loadTexture("texturas/geladeira.jpg");
     texMarmore = loadTexture("texturas/marmore.jpg");
+    texMarmore2 = loadTexture("texturas/marmore_2.jpg");
     texFogaoFrente = loadTexture("texturas/fogao_frente.png");
     texFogaoCima = loadTexture("texturas/fogao_cima.png");
-    texGuardaRoupa = loadTexture("texturas/guarda_roupa1.png"); 
-    
+    texGuardaRoupa = loadTexture("texturas/guarda_roupa_frente.png");
+    texMesaTampo = loadTexture("texturas/oak-cladding-1300-mm-architextures.jpg");
+    texMesaPe = loadTexture("texturas/mesa_pe.jpg");
+    texCadeiras = loadTexture("texturas/cadeiras.jpg");
+    texSofa = loadTexture("texturas/sofa.jpg");
+    texMesaTv = loadTexture("texturas/mesa_tv.jpg");
+    texConteudoTv = loadTexture("texturas/conteudo_tv.jpg");
+    texCabeceiraCama = loadTexture("texturas/cabeceira_cama.jpg");
+    texBaseCama = loadTexture("texturas/base_cama.jpg");
+    texColchaoCama = loadTexture("texturas/colchao_cama.jpg");
+
     texCeu = loadTexture("texturas/ceu.jpg"); 
 }
 
@@ -81,15 +99,15 @@ void display(void) {
     // Renderiza o mundo
     drawSkybox();
 
-    GLfloat light_position[] = { 0.0f, 3.5f, -3.0f, 1.0f }; 
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    GLfloat sol_posicao[] = { 0.0f, 15.0f, 30.0f, 0.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, sol_posicao);
 
-    GLfloat sol_posicao[] = { 0.0f, 15.0f, 30.0f, 0.0f }; 
-    glLightfv(GL_LIGHT1, GL_POSITION, sol_posicao);
+    updateRoomLightPositions();
 
     drawGround();
     drawHouse();
     drawInternalWalls();
+    drawCeilingLampFixtures();
     drawDoors(); 
     
     // Renderiza os Móveis

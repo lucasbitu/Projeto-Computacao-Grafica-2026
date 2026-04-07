@@ -14,9 +14,19 @@ GLuint texPorta;
 
 GLuint texGeladeira;
 GLuint texMarmore;
+GLuint texMarmore2;
 GLuint texFogaoFrente;
 GLuint texFogaoCima;
 GLuint texGuardaRoupa;
+GLuint texMesaTampo;
+GLuint texMesaPe;
+GLuint texCadeiras;
+GLuint texSofa;
+GLuint texMesaTv;
+GLuint texConteudoTv;
+GLuint texCabeceiraCama;
+GLuint texBaseCama;
+GLuint texColchaoCama;
 
 GLuint texCeu; 
 

@@ -17,6 +17,8 @@ void drawSkybox();
 void drawGround();
 void drawInternalWalls();
 void drawHouse();
+void updateRoomLightPositions(void);
+void drawCeilingLampFixtures(void);
 void drawWindows();
 void drawDoorModel();
 void drawDoors();
