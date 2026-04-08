@@ -1,6 +1,14 @@
 #include "../../include/cenario.h"
 #include <GL/glut.h>
 
+/*
+ * scene/windows.cpp
+ * -----------------
+ * Renderiza janelas em duas etapas:
+ * 1) molduras opacas (madeira),
+ * 2) vidros translúcidos com blending.
+ */
+
 void drawWindows() {
     const float winY0 = 1.2f;
     const float winY1 = 2.8f;
@@ -20,6 +28,7 @@ void drawWindows() {
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, frameSpec);
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0f);
 
+    /* Helper local para montar moldura completa em um plano Z fixo. */
     auto drawFrameOnZ = [&](float xa, float xb, float y0, float y1, float zPlane) {
         const float cx = 0.5f * (xa + xb);
         const float cy = 0.5f * (y0 + y1);
@@ -61,6 +70,7 @@ void drawWindows() {
     drawFrameOnZ(backWin2Xa, backWin2Xb, winY0, winY1, -10.0f);
     drawFrameOnZ(frontWinXa, frontWinXb, winY0, winY1, 10.0f);
 
+    /* Vidros transparentes: blending ligado e escrita no depth temporariamente desligada. */
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);

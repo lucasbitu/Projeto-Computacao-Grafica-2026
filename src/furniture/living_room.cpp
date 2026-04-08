@@ -4,9 +4,18 @@
 
 #include <GL/glut.h>
 
+/*
+ * furniture/living_room.cpp
+ * -------------------------
+ * Renderiza mobiliário da sala de estar:
+ * sofá, rack de TV, base da TV, tela texturizada e carcaça.
+ */
+
 void drawLivingRoomFurniture() {
+    /* Blocos do sofá principal (assento, encosto e braços). */
     const float sofaK = 1.55f;
 
+    /* Rack/base da TV. */
     glPushMatrix();
         glTranslatef(-5.5f, 0.0f, 6.0f);
 
@@ -31,6 +40,7 @@ void drawLivingRoomFurniture() {
         glPopMatrix();
     glPopMatrix();
 
+    /* TV: desenha conteúdo emissivo sem iluminação e depois moldura opaca. */
     glPushMatrix();
         glTranslatef(-9.46f, 0.25f, 6.0f);
         render::drawTexturedBox6(texMesaTv, 0.3f, 0.25f, 1.1f, 1.75f, 0.08f, 0.38f);

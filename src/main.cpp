@@ -3,6 +3,17 @@
 #include <iostream> 
 #include <math.h>
 
+/*
+ * main.cpp
+ * --------
+ * Ponto de entrada da aplicação.
+ *
+ * Responsável por:
+ * - inicializar estado global OpenGL (luzes, profundidade, texturas),
+ * - configurar callbacks da GLUT,
+ * - coordenar a ordem de renderização dos módulos do projeto.
+ */
+
 // A TUA ARQUITETURA MODULAR
 #include "../include/texturas_util.h"
 #include "../include/camera.h"
@@ -10,8 +21,11 @@
 #include "../include/cenario.h"
 
 void init(void) {
+    /* Cor do framebuffer quando não há geometria desenhada. */
     glClearColor(0.5f, 0.8f, 1.0f, 1.0f); 
+    /* Z-Buffer: essencial para ocultação correta em cena 3D. */
     glEnable(GL_DEPTH_TEST); 
+    /* Interpolação suave de iluminação por vértice. */
     glShadeModel(GL_SMOOTH); 
 
     GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -84,6 +98,7 @@ void init(void) {
 }
 
 void reshape(int w, int h) {
+    /* Evita divisão por zero no cálculo do aspecto. */
     if (h == 0) h = 1; 
     float aspect = (float)w / (float)h; 
 
@@ -91,12 +106,14 @@ void reshape(int w, int h) {
     glMatrixMode(GL_PROJECTION); 
     glLoadIdentity(); 
     
+    /* Projeção perspectiva ampla para ambiente interno + externo. */
     gluPerspective(60.0, aspect, 0.1, 500.0); 
     
     glMatrixMode(GL_MODELVIEW); 
 }
 
 void display(void) {
+    /* Limpa buffers de cor e profundidade a cada frame. */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     glLoadIdentity(); 
 
@@ -105,10 +122,18 @@ void display(void) {
     float dirY = sinf(camPitch);
     float dirZ = -cosf(camYaw) * cosP;
 
+    /* Monta matriz de visualização a partir da posição e orientação da câmera. */
     gluLookAt(camX, camY, camZ,                      
               camX + dirX, camY + dirY, camZ + dirZ, 
               0.0, 1.0, 0.0);                        
 
+    /*
+     * Ordem de renderização:
+     * 1) fundo/cenário,
+     * 2) arquitetura interna/externa,
+     * 3) móveis,
+     * 4) elementos transparentes (janelas por último para blending previsível).
+     */
     // Renderiza o mundo
     drawSkybox();
 
@@ -149,6 +174,7 @@ void idle() {
 }
 
 int main(int argc, char** argv) {
+    /* Bootstrap padrão da GLUT e criação da janela. */
     glutInit(&argc, argv); 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); 
     glutInitWindowSize(800, 600); 

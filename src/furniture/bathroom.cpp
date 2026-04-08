@@ -4,7 +4,15 @@
 
 #include <GL/glut.h>
 
+/*
+ * furniture/bathroom.cpp
+ * ----------------------
+ * Renderiza o conjunto do banheiro:
+ * banheira com água translúcida, pia e vaso sanitário.
+ */
+
 void drawBathroomFurniture() {
+    /* Materiais-base do conjunto sanitário e da água. */
     GLfloat porcelana[] = { 0.92f, 0.92f, 0.95f, 1.0f };
     GLfloat porcelanaAmb[] = { 0.35f, 0.35f, 0.38f, 1.0f };
     GLfloat aguaAmb[] = { 0.12f, 0.22f, 0.34f, 1.0f };
@@ -39,6 +47,7 @@ void drawBathroomFurniture() {
     glPushMatrix();
     glTranslatef(bx, by, bz);
 
+    /* Helper para montar cada bloco da banheira (fundo e laterais). */
     auto drawTubBox = [&](float cx, float cy, float cz, float hfx, float hfy, float hfz) {
         glPushMatrix();
         glTranslatef(cx, cy, cz);
@@ -60,6 +69,7 @@ void drawBathroomFurniture() {
     drawTubBox(0.0f, 0.0f, -hz - 0.5f * wt, hx, hy, 0.5f * wt);
     drawTubBox(0.0f, 0.0f, hz + 0.5f * wt, hx, hy, 0.5f * wt);
 
+    /* Volume interno da água com transparência alfa. */
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);

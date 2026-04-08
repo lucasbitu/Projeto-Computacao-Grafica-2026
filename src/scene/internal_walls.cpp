@@ -1,7 +1,16 @@
 #include "../../include/cenario.h"
 #include "../../include/texturas_util.h"
 
+/*
+ * scene/internal_walls.cpp
+ * ------------------------
+ * Renderiza a compartimentação interna da casa:
+ * - paredes divisórias com vãos de portas,
+ * - mureta e tampo de balcão entre ambientes.
+ */
+
 void drawInternalWalls() {
+    /* Material claro de parede para manter leitura uniforme dos ambientes. */
     glBindTexture(GL_TEXTURE_2D, texParede);
     GLfloat material_branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
@@ -15,6 +24,7 @@ void drawInternalWalls() {
     const float bzCoz = -0.55f;
     const float bzSala = 0.42f;
 
+    /* Quads montados em segmentos para preservar recortes e UV coerente. */
     glBegin(GL_QUADS);
         glNormal3f(0.0f, 0.0f, 1.0f);
         glTexCoord2f(0.0f, 0.0f); glVertex3f(-3.0f, 0.0f, 0.0f);

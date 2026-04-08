@@ -3,6 +3,17 @@
 #include <math.h>
 #include <stdlib.h> 
 
+/*
+ * camera.cpp
+ * ----------
+ * Implementa navegação manual e tour virtual automatizado.
+ *
+ * Fluxo principal:
+ * - updateTour() calcula posição/orientação em curvas de Bézier,
+ * - keyboard()/specialKeys() tratam entrada quando o tour não está ativo,
+ * - estado da câmera é consumido por src/main.cpp (gluLookAt).
+ */
+
 float camX = -6.4f;    
 float camY = 2.0f;     
 float camZ = 18.0f;    
@@ -74,6 +85,7 @@ Ponto3D c8_p2 = { -2.0f,  4.0f,  20.0f }; // Inicia a subida suave
 Ponto3D c8_p3 = {  5.0f,  6.0f,  25.0f }; // VOLTA EXATAMENTE AO PONTO INICIAL (c1_p0)
 
 Ponto3D calcularBezierCubo(float t, Ponto3D p0, Ponto3D p1, Ponto3D p2, Ponto3D p3) {
+    /* Avaliação clássica de curva de Bézier cúbica por combinação Bernstein. */
     float u = 1.0f - t;
     float tt = t * t, uu = u * u;
     float uuu = uu * u, ttt = tt * t;
@@ -86,6 +98,7 @@ Ponto3D calcularBezierCubo(float t, Ponto3D p0, Ponto3D p1, Ponto3D p2, Ponto3D 
 
 // Gerenciador da Spline (Emenda de OITO Curvas, 12.5% cada)
 Ponto3D getPosicaoTour(float t_global) {
+    /* Segmenta [0,1] em 8 partes iguais e seleciona curva correspondente. */
     if (t_global <= 0.125f) return calcularBezierCubo(t_global * 8.0f, c1_p0, c1_p1, c1_p2, c1_p3);
     else if (t_global <= 0.250f) return calcularBezierCubo((t_global - 0.125f) * 8.0f, c2_p0, c2_p1, c2_p2, c2_p3);
     else if (t_global <= 0.375f) return calcularBezierCubo((t_global - 0.250f) * 8.0f, c3_p0, c3_p1, c3_p2, c3_p3);
@@ -129,7 +142,7 @@ void updateTour() {
     camYaw = atan2f(dx, -dz);
     camPitch = atan2f(dy, sqrtf(dx*dx + dz*dz));
 
-    // Abertura automática das portas baseada na distância 
+    /* Abertura automática de portas por proximidade da câmera durante o tour. */
     if (calcularDistancia(camX, camZ, (-6.4f - 0.5f * DOOR_W), 10.0f) < 4.0f) portaFrenteAberta = true;
     if (calcularDistancia(camX, camZ, 0.6f, 0.0f) < 4.0f) portaQ1Aberta = true;
     if (calcularDistancia(camX, camZ, 5.2f, 4.0f) < 4.0f) portaSuiteAberta = true;
@@ -137,6 +150,7 @@ void updateTour() {
 }
 
 void keyboard(unsigned char key, int x, int y) {
+    /* Ignora comandos manuais durante tour, exceto tecla de alternância do tour. */
     if (tourAtivo && key != 't' && key != 'T') return;
     float velocidade = 0.5f; 
     float fX = sinf(camYaw), fZ = -cosf(camYaw);
@@ -167,6 +181,7 @@ void keyboard(unsigned char key, int x, int y) {
 }
 
 void specialKeys(int key, int x, int y) {
+    /* Rotação fina da câmera pelas setas (somente fora do tour automático). */
     if (tourAtivo) return; 
     float velO = 0.04f; 
     switch (key) {

@@ -4,9 +4,17 @@
 
 #include <GL/glut.h>
 
+/*
+ * furniture/kitchen.cpp
+ * ---------------------
+ * Renderiza os principais elementos da cozinha:
+ * geladeira, bancada, fogão e pia/torneira.
+ */
+
 static const float BATH_BED_SCALE = 1.3f;
 
 static void drawKitchenSinkTopOnCounter(float wx, float wyCounterTop, float wz, float rotYDeg) {
+    /* Helper para montar cuba da pia e pequeno volume metálico da torneira. */
     const float pb = BATH_BED_SCALE;
     const float marmK = 1.1f;
     const float marmMa = 0.26f;
@@ -54,6 +62,7 @@ static void drawKitchenSinkTopOnCounter(float wx, float wyCounterTop, float wz, 
 }
 
 void drawKitchenFurniture() {
+    /* Ordem: volumes maiores primeiro, detalhe de pia por último. */
     GLfloat mat_branca[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_branca);
 

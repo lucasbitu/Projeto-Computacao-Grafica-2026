@@ -4,10 +4,19 @@
 
 #include <GL/glut.h>
 
+/*
+ * furniture/dining.cpp
+ * --------------------
+ * Modela e renderiza os elementos da sala de jantar:
+ * - mesa principal com tampo texturizado,
+ * - seis cadeiras distribuídas ao redor da mesa.
+ */
+
 static const float FURN_SCALE = 1.5f;
 
 static void drawTabletopWithOakTop(float halfW, float halfH, float halfD,
                                    float sideR, float sideG, float sideB) {
+    /* Laterais em cor sólida e topo com textura de madeira para maior contraste visual. */
     GLfloat sideMat[] = { sideR, sideG, sideB, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, sideMat);
     glDisable(GL_TEXTURE_2D);
@@ -63,10 +72,12 @@ static void drawTabletopWithOakTop(float halfW, float halfH, float halfD,
 }
 
 static void drawTexturedLegBox(float hx, float hy, float hz) {
+    /* Pé da mesa reutiliza primitiva caixa com textura da madeira da base. */
     render::drawTexturedBox6(texMesaPe, hx, hy, hz, 1.8f, 0.24f, 0.86f);
 }
 
 static void drawChair(float tx, float tz, float rotYDeg) {
+    /* Cadeira construída por composição (assento, encosto e quatro pernas). */
     const float scale = FURN_SCALE;
     const float ck = 2.0f;
     const float shx = 0.23f * scale;
@@ -114,6 +125,10 @@ static void drawChair(float tx, float tz, float rotYDeg) {
 }
 
 void drawDiningTable() {
+    /*
+     * Orquestra a sala de jantar: primeiro mesa,
+     * depois cadeiras posicionadas radialmente.
+     */
     const float scale = FURN_SCALE;
     const float tableX = 0.5f;
     const float tableZ = 4.5f;

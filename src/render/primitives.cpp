@@ -1,8 +1,18 @@
 #include "../../include/render/primitives.h"
 
+/*
+ * render/primitives.cpp
+ * ---------------------
+ * Implementação das primitivas geométricas reutilizáveis do projeto.
+ *
+ * O objetivo é centralizar padrões de desenho (normais, UV, materiais)
+ * e evitar duplicação em módulos de cenário e mobiliário.
+ */
+
 namespace render {
 
 void drawTexturedCubeFaces(GLuint texFront, GLuint texSides, GLuint texTop) {
+    /* Frente com textura dedicada (útil para eletrodomésticos e móveis). */
     if (texFront > 0) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, texFront);
@@ -18,6 +28,7 @@ void drawTexturedCubeFaces(GLuint texFront, GLuint texSides, GLuint texTop) {
         glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
     glEnd();
 
+    /* Laterais/traseira/base compartilham a mesma textura. */
     if (texSides > 0) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, texSides);
@@ -51,6 +62,7 @@ void drawTexturedCubeFaces(GLuint texFront, GLuint texSides, GLuint texTop) {
         glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
     glEnd();
 
+    /* Topo separado para permitir aparência distinta da tampa/superfície. */
     if (texTop > 0) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, texTop);
@@ -71,6 +83,10 @@ void drawTexturedCubeFaces(GLuint texFront, GLuint texSides, GLuint texTop) {
 
 void drawTexturedBox6(GLuint textureId, float halfX, float halfY, float halfZ, float uvScale,
                       float ambientStrength, float diffuseStrength) {
+    /*
+     * Gera UV proporcional ao perímetro horizontal e altura,
+     * mantendo repetição visual coerente em caixas de tamanhos diferentes.
+     */
     const float uvXZ = uvScale * (2.0f * halfX + 2.0f * halfZ);
     const float uvH = uvScale * (2.0f * halfY);
 

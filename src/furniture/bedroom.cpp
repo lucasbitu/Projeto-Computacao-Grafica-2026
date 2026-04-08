@@ -4,15 +4,24 @@
 
 #include <GL/glut.h>
 
+/*
+ * furniture/bedroom.cpp
+ * ---------------------
+ * Renderiza o mobiliário dos quartos:
+ * cama (base, colchão e cabeceira), mesa de estudo, cadeira e guarda-roupa.
+ */
+
 static const float furnitureScale = 1.5f;
 static const float bedBathScale = 1.3f;
 static const float quartoParedeFundoZ = -10.0f;
 
 static void drawTexturedLegBox(float halfX, float halfY, float halfZ) {
+    /* Perna de mesa com textura de madeira. */
     render::drawTexturedBox6(texMesaPe, halfX, halfY, halfZ, 1.8f);
 }
 
 static void drawBedroomChair(float tx, float tz, float rotYDeg) {
+    /* Cadeira de estudo parametrizada por posição e rotação no plano. */
     const float s = furnitureScale;
     const float ck = 2.0f;
     const float shx = 0.23f * s;
@@ -198,6 +207,7 @@ static void drawBedHeadboard(float cx, float cz, float b, float largZ) {
 }
 
 static void drawBed(float cx, float cz) {
+    /* Cama composta por base + colchão + cabeceira. */
     const float b = bedBathScale;
     const float compX = 2.0f * b;
     const float largZ = 2.25f * b;
@@ -312,6 +322,7 @@ static void drawWardrobe(float tx, float tz, float rotYDeg) {
 }
 
 void drawBedroomsFurniture() {
+    /* Instancia duas configurações de quarto com layout espelhado. */
     const float bedZ = quartoParedeFundoZ + 0.08f + 1.245f * bedBathScale;
     drawBed(0.35f, bedZ);
     drawStudyDesk(2.45f, -2.75f);

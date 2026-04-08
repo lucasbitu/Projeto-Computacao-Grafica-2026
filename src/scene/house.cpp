@@ -1,7 +1,15 @@
 #include "../../include/cenario.h"
 #include "../../include/texturas_util.h"
 
+/*
+ * scene/house.cpp
+ * ---------------
+ * Renderiza a estrutura externa da residência:
+ * piso interno, fachadas, frontões, teto interno e telhado.
+ */
+
 void drawHouse() {
+    /* Material base neutro para modulação das texturas da casa. */
     GLfloat material_branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     GLfloat material_piso_amb[] = { 0.32f, 0.32f, 0.34f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_piso_amb);
@@ -16,6 +24,7 @@ void drawHouse() {
         glTexCoord2f(10.0f, 0.0f);  glVertex3f( 10.0f, 0.0f, -10.0f);
     glEnd();
 
+    /* Fachadas externas texturizadas com recortes de porta e janelas. */
     glBindTexture(GL_TEXTURE_2D, texParede);
     glColor3f(1.0f, 1.0f, 1.0f);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -129,6 +138,7 @@ void drawHouse() {
 
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+    /* Plano de teto interno. */
     glBindTexture(GL_TEXTURE_2D, texGesso);
     GLfloat material_teto[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     GLfloat material_teto_amb[] = { 0.40f, 0.40f, 0.42f, 1.0f };
@@ -143,6 +153,7 @@ void drawHouse() {
         glTexCoord2f(0.0f, 10.0f);  glVertex3f(-10.0f, 4.0f, -10.0f);
     glEnd();
 
+    /* Duas águas do telhado externo. */
     glBindTexture(GL_TEXTURE_2D, texTelhado);
     GLfloat mat_telhado_amb[] = { 0.12f, 0.12f, 0.13f, 1.0f };
     GLfloat mat_telhado_dif[] = { 0.52f, 0.52f, 0.54f, 1.0f };

@@ -3,6 +3,16 @@
 #include "../include/camera.h"
 #include <math.h>
 
+/*
+ * cenario.cpp
+ * -----------
+ * Implementa estado global compartilhado do cenário e funções utilitárias de
+ * infraestrutura visual (céu, chão e luminárias de teto).
+ *
+ * Observação: geometrias grandes da casa/paredes/aberturas já foram extraídas
+ * para a pasta src/scene para manter responsabilidade por módulo.
+ */
+
 bool portaFrenteAberta = false; 
 bool portaQ1Aberta = false;
 bool portaQ2Aberta = false;
@@ -13,6 +23,7 @@ const float DOOR_W = 1.6f;
 const float DOOR_H = 2.0f * DOOR_W;
 
 float calcularDistancia(float x1, float z1, float x2, float z2) {
+    /* Distância euclidiana 2D no plano do piso (XZ). */
     return sqrt((x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2));
 }
 
@@ -28,6 +39,7 @@ static const float LUZ_TETO_Z[NUM_LUZES_TETO] = {
 static const float LUZ_TETO_Y = 3.88f;
 
 void updateRoomLightPositions(void) {
+    /* Atualiza posições das luzes internas no espaço mundial a cada frame. */
     for (int i = 0; i < NUM_LUZES_TETO; i++) {
         GLfloat p[] = { LUZ_TETO_X[i], LUZ_TETO_Y, LUZ_TETO_Z[i], 1.0f };
         glLightfv(GL_LIGHT1 + i, GL_POSITION, p);
@@ -35,6 +47,7 @@ void updateRoomLightPositions(void) {
 }
 
 static void drawOneCeilingLamp(float cx, float cz) {
+    /* Caixa achatada representando o corpo da luminária de teto. */
     const float yBottom = 3.91f;
     const float yTop = 3.995f;
     const float hx = 0.32f;
@@ -84,6 +97,7 @@ static void drawOneCeilingLamp(float cx, float cz) {
 }
 
 void drawCeilingLampFixtures(void) {
+    /* Luminárias são desenhadas sem textura, com material emissivo leve. */
     glDisable(GL_TEXTURE_2D);
     GLfloat dif[] = { 0.9f, 0.9f, 0.88f, 1.0f };
     GLfloat emi[] = { 0.12f, 0.12f, 0.1f, 1.0f };
@@ -102,6 +116,10 @@ void drawCeilingLampFixtures(void) {
 }
 
 void drawSkybox() {
+    /*
+     * Skybox esférica centrada na câmera para simular infinito:
+     * a translação acompanha o observador e evita sensação de "fim" do céu.
+     */
     glDisable(GL_LIGHTING); 
 
     glEnable(GL_TEXTURE_2D);
@@ -128,6 +146,7 @@ void drawSkybox() {
 }
 
 void drawGround() {
+    /* Plano extenso com textura repetida para representar terreno externo. */
     glDisable(GL_LIGHTING); 
     glColor3f(1.0f, 1.0f, 1.0f); 
     glBindTexture(GL_TEXTURE_2D, texGramado);
