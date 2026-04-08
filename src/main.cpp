@@ -14,7 +14,7 @@
  * - coordenar a ordem de renderização dos módulos do projeto.
  */
 
-// A TUA ARQUITETURA MODULAR
+// A ARQUITETURA MODULAR
 #include "../include/texturas_util.h"
 #include "../include/camera.h"
 #include "../include/moveis.h"
@@ -146,6 +146,7 @@ void display(void) {
 
     updateRoomLightPositions();
 
+    // Renderiza cenário e arquitetura
     drawGround();
     drawHouse();
     drawInternalWalls();

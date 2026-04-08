@@ -117,8 +117,8 @@ void drawCeilingLampFixtures(void) {
 
 void drawSkybox() {
     /*
-     * Skybox esférica centrada na câmera para simular infinito:
-     * a translação acompanha o observador e evita sensação de "fim" do céu.
+     * Skybox esférica texturizada de dentro para fora:
+     * .
      */
     glDisable(GL_LIGHTING); 
 
