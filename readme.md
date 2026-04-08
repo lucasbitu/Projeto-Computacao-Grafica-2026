@@ -7,11 +7,17 @@ Este projeto é uma simulação 3D em OpenGL de um ambiente virtual (uma casa). 
 **Dependências:** O projeto requer as bibliotecas base do OpenGL e GLUT. 
 No Linux (Ubuntu/Debian), instale com: `sudo apt-get install freeglut3-dev`
 
-Para compilar, abra o terminal na pasta do projeto e execute:
-g++ src/main.cpp src/texturas_util.cpp src/camera.cpp src/moveis.cpp src/cenario.cpp -I include -lGL -lGLU -lglut -o simulador
+Com `Makefile` (recomendado), abra o terminal na pasta do projeto e execute:
+`make`
+
+Para compilar manualmente (alternativa):
+g++ src/main.cpp src/texturas_util.cpp src/camera.cpp src/moveis.cpp src/cenario.cpp src/render/primitives.cpp src/scene/house.cpp src/scene/internal_walls.cpp src/scene/windows.cpp src/scene/doors.cpp src/furniture/dining.cpp src/furniture/living_room.cpp src/furniture/kitchen.cpp src/furniture/bathroom.cpp src/furniture/bedroom.cpp -I include -lGL -lGLU -lglut -o simulador
 
 Para executar o programa:
 `./simulador`
+
+Ou com `make`:
+`make run`
 
 ## 🧩 Elementos das Atividades Práticas
 O projeto engloba os seguintes requisitos exigidos:
