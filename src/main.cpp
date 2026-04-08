@@ -16,12 +16,23 @@ void init(void) {
 
     GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+    /* Luz ambiente global (céu / reflexão) — evita faces exteriores pretas com TWO_SIDE */
+    GLfloat luz_ambiente_cena[] = { 0.32f, 0.33f, 0.36f, 1.0f };
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luz_ambiente_cena);
+
     /* Luz solar (direcional) — iluminação geral exterior */
-    GLfloat sol_difusa[]   = { 0.45f, 0.45f, 0.45f, 1.0f };
-    GLfloat sol_ambiente[] = { 0.18f, 0.18f, 0.2f, 1.0f };
+    GLfloat sol_difusa[]   = { 0.48f, 0.48f, 0.50f, 1.0f };
+    GLfloat sol_ambiente[] = { 0.26f, 0.26f, 0.28f, 1.0f };
     glLightfv(GL_LIGHT0, GL_DIFFUSE, sol_difusa);
     glLightfv(GL_LIGHT0, GL_AMBIENT, sol_ambiente);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+
+    /* Preenchimento: reforça fachadas pouco expostas ao sol (laterais / contrafrente) */
+    GLfloat fill_dif[] = { 0.26f, 0.26f, 0.28f, 1.0f };
+    GLfloat fill_zero[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glLightfv(GL_LIGHT7, GL_DIFFUSE, fill_dif);
+    glLightfv(GL_LIGHT7, GL_AMBIENT, fill_zero);
+    glLightfv(GL_LIGHT7, GL_SPECULAR, fill_zero);
 
     /* Um ponto de luz no teto por cômodo (atenuação limita o alcance a cada divisão) */
     GLfloat luz_comodo_dif[] = { 0.75f, 0.75f, 0.72f, 1.0f };
@@ -32,13 +43,15 @@ void init(void) {
         glLightfv(L, GL_AMBIENT, luz_comodo_amb);
         glLightfv(L, GL_SPECULAR, light_specular);
         glLightf(L, GL_CONSTANT_ATTENUATION, 1.0f);
-        glLightf(L, GL_LINEAR_ATTENUATION, 0.07f);
-        glLightf(L, GL_QUADRATIC_ATTENUATION, 0.04f);
+        /* Atenuação um pouco mais suave para o pool de luz ler-se nas paredes do perímetro */
+        glLightf(L, GL_LINEAR_ATTENUATION, 0.045f);
+        glLightf(L, GL_QUADRATIC_ATTENUATION, 0.022f);
         glEnable(L);
     }
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT7);
 
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
@@ -49,7 +62,7 @@ void init(void) {
     texGramado = loadTexture("texturas/grama.jpg");
     texTelhado = loadTexture("texturas/telhado.jpg");
     texGesso = loadTexture("texturas/gesso.jpg");
-    texPorta = loadTexture("texturas/porta.jpg"); 
+    texPorta = loadTexture("texturas/door_2.jpg"); 
 
     texGeladeira = loadTexture("texturas/geladeira.jpg");
     texMarmore = loadTexture("texturas/marmore.jpg");
@@ -101,6 +114,10 @@ void display(void) {
 
     GLfloat sol_posicao[] = { 0.0f, 15.0f, 30.0f, 0.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, sol_posicao);
+    /* Direcional aprox. de -Z (lado de trás da casa) para iluminar faces exteriores viradas a sul */
+    /* Componente em X ajuda as paredes x = ±10; Y suaviza depressão no triângulo do frontão */
+    GLfloat fill_pos[] = { 0.25f, 0.45f, -1.0f, 0.0f };
+    glLightfv(GL_LIGHT7, GL_POSITION, fill_pos);
 
     updateRoomLightPositions();
 

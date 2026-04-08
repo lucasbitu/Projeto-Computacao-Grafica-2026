@@ -8,8 +8,9 @@ bool portaQ1Aberta = false;
 bool portaQ2Aberta = false;
 bool portaSuiteAberta = false;
 
-const float DOOR_H = 2.2f;
 const float DOOR_W = 1.6f;
+/* Altura : largura = 2 : 1 (aberturas na parede e malha em drawDoors) */
+const float DOOR_H = 2.0f * DOOR_W;
 
 float calcularDistancia(float x1, float z1, float x2, float z2) {
     return sqrt((x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2));
@@ -247,6 +248,8 @@ void drawInternalWalls() {
 
 void drawHouse() {
     GLfloat material_branco[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat material_piso_amb[] = { 0.32f, 0.32f, 0.34f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_piso_amb);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
 
     glBindTexture(GL_TEXTURE_2D, texPiso); 
@@ -259,8 +262,21 @@ void drawHouse() {
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, texParede);
+    /* Fachadas com iluminação: sol + LIGHT7 + luzes pontuais (TWO_SIDE em main). Textura modula o resultado. */
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    /* Ambiente um pouco alto nas fachadas: paredes laterais quase paralelas ao sol ficam menos “murchas” */
+    GLfloat mat_parede_ext_amb[] = { 0.30f, 0.30f, 0.32f, 1.0f };
+    GLfloat mat_parede_ext_dif[] = { 0.88f, 0.88f, 0.90f, 1.0f };
+    GLfloat mat_parede_no_spec[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_parede_ext_amb);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_parede_ext_dif);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_parede_no_spec);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0f);
+
     const float frontDoorXa = -6.4f - 0.5f * DOOR_W;
     const float frontDoorXb = frontDoorXa + DOOR_W;
+    const float picoY = 8.0f;
 
     glBegin(GL_QUADS);
         glNormal3f(0.0f, 0.0f, 1.0f); 
@@ -298,8 +314,26 @@ void drawHouse() {
         glTexCoord2f(0.56f, 2.0f); glVertex3f(frontDoorXa, 4.0f, 10.0f);
     glEnd();
 
+    glBegin(GL_TRIANGLES);
+        /* Mesma normal que os quads da fachada z = +10 (0,0,-1); CCW visto de dentro (-Z) */
+        glNormal3f(0.0f, 0.0f, -1.0f);
+        glTexCoord2f(4.0f, 2.0f); glVertex3f( 10.0f, 4.0f, 10.0f);
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, 10.0f);
+        glTexCoord2f(2.0f, 4.0f); glVertex3f(  0.0f, picoY, 10.0f);
+
+        /* Igual à parede z = -10: normal (0,0,1); ordem CCW vista de dentro (+Z) */
+        glNormal3f(0.0f, 0.0f, 1.0f);
+        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, -10.0f);
+        glTexCoord2f(4.0f, 2.0f); glVertex3f( 10.0f, 4.0f, -10.0f);
+        glTexCoord2f(2.0f, 4.0f); glVertex3f(  0.0f, picoY, -10.0f);
+    glEnd();
+
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
     glBindTexture(GL_TEXTURE_2D, texGesso);
     GLfloat material_teto[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat material_teto_amb[] = { 0.40f, 0.40f, 0.42f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_teto_amb);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_teto);
 
     glBegin(GL_QUADS);
@@ -311,8 +345,11 @@ void drawHouse() {
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, texTelhado);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_branco);
-    float picoY = 8.0f;
+    /* Telhado: menos ambiente/difuso que a parede baixa (evita faixa muito clara junto ao frontão) */
+    GLfloat mat_telhado_amb[] = { 0.12f, 0.12f, 0.13f, 1.0f };
+    GLfloat mat_telhado_dif[] = { 0.52f, 0.52f, 0.54f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_telhado_amb);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_telhado_dif);
     float baseRoofY = 3.6f;
     float overX = 11.0f;    
     float overZ = 11.0f;    
@@ -329,19 +366,6 @@ void drawHouse() {
         glTexCoord2f(4.0f, 0.0f); glVertex3f( overX, baseRoofY,  overZ); 
         glTexCoord2f(4.0f, 2.0f); glVertex3f(  0.0f,     picoY,  overZ); 
         glTexCoord2f(0.0f, 2.0f); glVertex3f(  0.0f,     picoY, -overZ); 
-    glEnd();
-
-    glBindTexture(GL_TEXTURE_2D, texParede); 
-    glBegin(GL_TRIANGLES);
-        glNormal3f(0.0f, 0.0f, -1.0f); 
-        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, 10.0f); 
-        glTexCoord2f(4.0f, 2.0f); glVertex3f( 10.0f, 4.0f, 10.0f); 
-        glTexCoord2f(2.0f, 4.0f); glVertex3f(  0.0f, picoY, 10.0f); 
-
-        glNormal3f(0.0f, 0.0f, 1.0f); 
-        glTexCoord2f(4.0f, 2.0f); glVertex3f( 10.0f, 4.0f, -10.0f); 
-        glTexCoord2f(0.0f, 2.0f); glVertex3f(-10.0f, 4.0f, -10.0f); 
-        glTexCoord2f(2.0f, 4.0f); glVertex3f(  0.0f, picoY, -10.0f); 
     glEnd();
 
     glBindTexture(GL_TEXTURE_2D, 0);

@@ -459,6 +459,55 @@ void drawWardrobe(float tx, float tz, float rotYDeg) {
     glPopMatrix();
 }
 
+/* Só o tampo/lavatório (retângulo superior da pia) apoiado no plano wyCounterTop do balcão */
+static void drawKitchenSinkTopOnCounter(float wx, float wyCounterTop, float wz, float rotYDeg) {
+    const float Pb = BATH_BED_SCALE;
+    const float marmK = 1.1f;
+    const float marmMa = 0.26f;
+    const float marmMd = 0.88f;
+    GLfloat porcelana[] = { 0.92f, 0.92f, 0.95f, 1.0f };
+    GLfloat porcelanaAmb[] = { 0.35f, 0.35f, 0.38f, 1.0f };
+    const float htx = 0.5f * 0.46f * Pb;
+    const float hty = 0.5f * 0.12f * Pb;
+    const float htz = 0.5f * 0.38f * Pb;
+
+    auto drawLouca = [&](float hx, float hy, float hz) {
+        if (texMarmore2 != 0)
+            drawTexturedBox6(texMarmore2, hx, hy, hz, marmK, marmMa, marmMd);
+        else {
+            glDisable(GL_TEXTURE_2D);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, porcelanaAmb);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
+            glScalef(2.0f * hx, 2.0f * hy, 2.0f * hz);
+            glutSolidCube(1.0f);
+        }
+    };
+
+    glPushMatrix();
+    glTranslatef(wx, wyCounterTop, wz);
+    glRotatef(rotYDeg, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, hty, 0.03f * Pb);
+    drawLouca(htx, hty, htz);
+    glPopMatrix();
+
+    /* Torneira (mesmo bloco cinza que no banheiro), acima do tampo da pia */
+    glDisable(GL_TEXTURE_2D);
+    GLfloat cinzaMetalAmb[] = { 0.045f, 0.045f, 0.048f, 1.0f };
+    GLfloat cinzaMetalDif[] = { 0.14f, 0.14f, 0.155f, 1.0f };
+    GLfloat zeroSpec[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, cinzaMetalAmb);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, cinzaMetalDif);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zeroSpec);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0f);
+    glPushMatrix();
+    glTranslatef(wx, wyCounterTop, wz);
+    glRotatef(rotYDeg, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 2.0f * hty + 0.05f * Pb, -0.18f * Pb);
+    glScalef(0.05f * Pb, 0.14f * Pb, 0.05f * Pb);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+}
+
 void drawBedroomsFurniture() {
     /* Centro Z: borda -Z da cabeceira = cz - 1,245*B (colchão + offset + meia espessura cabeceira) */
     const float bedZ = QUARTO_PAREDE_FUNDO_Z + 0.08f + 1.245f * BATH_BED_SCALE;
@@ -500,6 +549,9 @@ void drawKitchenFurniture() {
         glScalef(0.8f, 0.9f, 0.8f);
         drawTexturedCube(texFogaoFrente, 0, texFogaoCima);
     glPopMatrix();
+
+    /* Pia da cozinha: apenas o bloco superior sobre o tampo do balcão (y = 0,45 + 0,45) */
+    drawKitchenSinkTopOnCounter(-5.0f, 0.9f, -9.2f, 0.0f);
 }
 
 void drawBathroomFurniture() {
@@ -627,13 +679,14 @@ void drawBathroomFurniture() {
         }
     };
 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, porcelanaAmb);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, porcelana);
     glPushMatrix();
     glTranslatef(piaPx, 0.0f, piaPz);
     glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
     glTranslatef(0.0f, 0.34f * Pb, 0.0f);
     drawLoucaOuMarmore(0.5f * 0.40f * Pb, 0.5f * 0.68f * Pb, 0.5f * 0.44f * Pb);
     glPopMatrix();
-
     glPushMatrix();
     glTranslatef(piaPx, 0.0f, piaPz);
     glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
@@ -641,7 +694,6 @@ void drawBathroomFurniture() {
     drawLoucaOuMarmore(0.5f * 0.46f * Pb, 0.5f * 0.12f * Pb, 0.5f * 0.38f * Pb);
     glPopMatrix();
 
-    /* Torneira: cinza escuro (difuso baixo para não “lavar” com luzes do teto) */
     glDisable(GL_TEXTURE_2D);
     GLfloat cinzaMetalAmb[] = { 0.045f, 0.045f, 0.048f, 1.0f };
     GLfloat cinzaMetalDif[] = { 0.14f, 0.14f, 0.155f, 1.0f };
